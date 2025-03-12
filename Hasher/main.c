@@ -8,7 +8,7 @@ UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 
 #define INITIAL_SEED	0x7
 #define HASH_VALUE_POSTFIX  "HashValue"
-#define RTIME_HASH(API) HashStringRotr32Sub((LPCSTR) API)
+#define RTIME_HASH(API) HashStringRotr32((LPCSTR) API)
 
 INT HashStringRotr32(LPCSTR String)
 {
