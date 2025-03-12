@@ -16,7 +16,6 @@
 	HellDescent PROC
 		mov r10, rcx
 		mov eax, wSystemCall
-
 		syscall
 		ret
 	HellDescent ENDP

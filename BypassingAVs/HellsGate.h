@@ -6,7 +6,7 @@
 #define NtCreateSectionHashValue        0xAC2EDA02
 #define NtMapViewOfSectionHashValue     0x92DD00B3
 #define NtUnmapViewOfSectionHashValue   0x12D71086
-#define NtCloseHashValue        0x7B3F64A4
+#define NtCloseHashValue				0x7B3F64A4
 #define NtCreateThreadExHashValue       0x93EC9D3D
 #define NtWaitForSingleObjectHashValue  0xC6F6AFCD
 
@@ -26,11 +26,15 @@ typedef struct _VX_TABLE {
 	VX_TABLE_ENTRY NtWaitForSingleObject;
 } VX_TABLE, * PVX_TABLE;
 
-// Function prototypes
+/// Function prototypes
+// Defined in HellsGate.c
 BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory);
 BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDirectory, PVX_TABLE_ENTRY pVxTableEntry);
 
-
-// Defined in 'HellAsm.asm'
+// Defined in HellsGateAsm.asm
 extern VOID HellsGate(WORD wSystemCall);
 extern HellDescent();
+
+// Defined in Injection.c
+BOOL InitializeSyscalls();
+BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN SIZE_T sPayloadSize, IN BOOL bIsLocalInjection);

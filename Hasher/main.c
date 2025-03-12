@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <stdio.h>
 
-INT HashStringRotr32(LPCSTR String);
+UINT32 HashStringRotr32(LPCSTR String);
 SIZE_T StringLength(LPCSTR String);
 UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 
@@ -10,9 +10,9 @@ UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 #define HASH_VALUE_POSTFIX  "HashValue"
 #define RTIME_HASH(API) HashStringRotr32((LPCSTR) API)
 
-INT HashStringRotr32(LPCSTR String)
+UINT32 HashStringRotr32(LPCSTR String)
 {
-	INT Value = 0;
+	UINT32 Value = 0;
 
 	for (INT Index = 0; Index < StringLength(String); Index++)
 		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
@@ -24,7 +24,7 @@ SIZE_T StringLength(LPCSTR String)
 {
 	LPCSTR String2 = String;
 
-	for (String2 = String; *String2; ++String2);
+	for (; *String2; ++String2);
 
 	return (String2 - String);
 }
@@ -41,11 +41,35 @@ UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count)
 
 
 int main() {
-	printf("#define %s%s \t0x%0.8X \n", "NtCreateSection", HASH_VALUE_POSTFIX, HashStringRotr32("NtCreateSection"));
-	printf("#define %s%s \t0x%0.8X \n", "NtMapViewOfSection", HASH_VALUE_POSTFIX, HashStringRotr32("NtMapViewOfSection"));
-	printf("#define %s%s \t0x%0.8X \n", "NtUnmapViewOfSection", HASH_VALUE_POSTFIX, HashStringRotr32("NtUnmapViewOfSection"));
-	printf("#define %s%s \t0x%0.8X \n", "NtClose", HASH_VALUE_POSTFIX, HashStringRotr32("NtClose"));
-	printf("#define %s%s \t0x%0.8X \n", "NtCreateThreadEx", HASH_VALUE_POSTFIX, HashStringRotr32("NtCreateThreadEx"));
-	printf("#define %s%s \t0x%0.8X \n", "NtWaitForSingleObject", HASH_VALUE_POSTFIX, HashStringRotr32("NtWaitForSingleObject"));
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtCreateSection",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtCreateSection"));
+
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtMapViewOfSection",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtMapViewOfSection"));
+
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtUnmapViewOfSection",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtUnmapViewOfSection"));
+
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtClose",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtClose"));
+
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtCreateThreadEx",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtCreateThreadEx"));
+
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtWaitForSingleObject",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtWaitForSingleObject"));
+
 	return 0;
 }

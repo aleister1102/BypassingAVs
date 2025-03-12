@@ -340,6 +340,7 @@ typedef struct _INITIAL_TEB {
 } INITIAL_TEB, * PINITIAL_TEB;
 
 
+// Used in Injection.c
 typedef enum _SECTION_INHERIT {
 	ViewShare = 1,
 	ViewUnmap = 2
@@ -348,8 +349,10 @@ typedef enum _SECTION_INHERIT {
 /*--------------------------------------------------------------------
   FUNCTIONS
 --------------------------------------------------------------------*/
-INT HashStringRotr32(LPCSTR String);
+UINT32 HashStringRotr32(LPCSTR String);
 SIZE_T StringLength(LPCSTR String);
 UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 PTEB RtlGetThreadEnvironmentBlock();
 PVOID CopyMemoryEx(IN OUT PVOID Destination, IN CONST PVOID Source, IN SIZE_T Length);
+HANDLE GetCurrentProcessHandle();
+HANDLE GetCurrentThreadHandle();

@@ -1,8 +1,8 @@
 #include "Common.h"
 
-INT HashStringRotr32(LPCSTR String)
+UINT32 HashStringRotr32(LPCSTR String)
 {
-	INT Value = 0;
+	UINT32 Value = 0;
 
 	for (INT Index = 0; Index < StringLength(String); Index++)
 		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
@@ -14,7 +14,7 @@ SIZE_T StringLength(LPCSTR String)
 {
 	LPCSTR String2 = String;
 
-	for (String2 = String; *String2; ++String2);
+	for (; *String2; ++String2);
 
 	return (String2 - String);
 }
@@ -47,4 +47,12 @@ PVOID CopyMemoryEx(IN OUT PVOID Destination, IN CONST PVOID Source, IN SIZE_T Le
 		*D++ = *S++;
 
 	return Destination;
+}
+
+HANDLE GetCurrentProcessHandle() {
+	return (HANDLE)-1;
+}
+
+HANDLE GetCurrentThreadHandle() {
+	return (HANDLE)-2;
 }
