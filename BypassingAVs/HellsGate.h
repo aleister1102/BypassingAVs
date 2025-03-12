@@ -1,0 +1,36 @@
+#pragma once
+
+#include "Common.h"
+
+// Hash values of syscalls
+#define NtCreateSectionHashValue        0xAC2EDA02
+#define NtMapViewOfSectionHashValue     0x92DD00B3
+#define NtUnmapViewOfSectionHashValue   0x12D71086
+#define NtCloseHashValue        0x7B3F64A4
+#define NtCreateThreadExHashValue       0x93EC9D3D
+#define NtWaitForSingleObjectHashValue  0xC6F6AFCD
+
+// Data structures
+typedef struct _VX_TABLE_ENTRY {
+	PVOID   pAddress;
+	DWORD64 dwHash;
+	WORD    wSystemCall;
+} VX_TABLE_ENTRY, * PVX_TABLE_ENTRY;
+
+typedef struct _VX_TABLE {
+	VX_TABLE_ENTRY NtCreateSection;
+	VX_TABLE_ENTRY NtMapViewOfSection;
+	VX_TABLE_ENTRY NtUnmapViewOfSection;
+	VX_TABLE_ENTRY NtClose;
+	VX_TABLE_ENTRY NtCreateThreadEx;
+	VX_TABLE_ENTRY NtWaitForSingleObject;
+} VX_TABLE, * PVX_TABLE;
+
+// Function prototypes
+BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory);
+BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDirectory, PVX_TABLE_ENTRY pVxTableEntry);
+
+
+// Defined in 'HellAsm.asm'
+extern VOID HellsGate(WORD wSystemCall);
+extern HellDescent();
