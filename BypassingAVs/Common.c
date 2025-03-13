@@ -4,13 +4,13 @@ UINT32 HashStringRotr32(LPCSTR String)
 {
 	UINT32 Value = 0;
 
-	for (INT Index = 0; Index < StringLength(String); Index++)
+	for (INT Index = 0; Index < StringLengthA(String); Index++)
 		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
 
 	return Value;
 }
 
-SIZE_T StringLength(LPCSTR String)
+SIZE_T StringLengthA(LPCSTR String)
 {
 	LPCSTR String2 = String;
 
@@ -57,7 +57,7 @@ HANDLE GetCurrentThreadHandle() {
 	return (HANDLE)-2;
 }
 
-VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size) 
+VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size)
 {
 	printf("unsigned char %s[] = {", Name);
 
@@ -127,4 +127,50 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	}
 
 	return TRUE;
+}
+
+INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2)
+{
+	for (; *String1 == *String2; String1++, String2++)
+	{
+		if (*String1 == '\0')
+			return 0;
+	}
+
+	return ((*(LPCWSTR)String1 < *(LPCWSTR)String2) ? -1 : +1);
+}
+
+SIZE_T StringLengthW(IN LPCWSTR String)
+{
+	LPCWSTR String2 = String;
+
+	for (; *String2; ++String2);
+
+	return (String2 - String);
+}
+
+LPCWSTR LowerCaseString(IN LPCWSTR String) {
+	if (!String)
+		return NULL;
+
+	// Get length of the string
+	SIZE_T length = StringLengthW(String);
+
+	// Allocate memory for the lowercase string
+	PWSTR lowerString = (PWSTR)HeapAlloc(
+		GetProcessHeap(),
+		HEAP_ZERO_MEMORY,
+		(length + 1) * sizeof(WCHAR)
+	);
+
+	if (!lowerString)
+		return NULL;
+
+	// Lowercasing the string
+	for (SIZE_T i = 0; i < length; i++) {
+		lowerString[i] = towlower(String[i]);
+	}
+	lowerString[length] = L'\0';
+
+	return lowerString;
 }

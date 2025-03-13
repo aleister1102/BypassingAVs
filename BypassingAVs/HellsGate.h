@@ -33,6 +33,7 @@ typedef struct _VX_TABLE {
 BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory);
 BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDirectory, PVX_TABLE_ENTRY pVxTableEntry);
 BOOL InitializeSyscalls();
+BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
 
 // Defined in HellsGateAsm.asm
 extern VOID HellsGate(WORD wSystemCall);

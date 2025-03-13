@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 UINT32 HashStringRotr32(LPCSTR String);
-SIZE_T StringLength(LPCSTR String);
+SIZE_T StringLengthA(LPCSTR String);
 UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 
 #define INITIAL_SEED	0x7
@@ -14,13 +14,13 @@ UINT32 HashStringRotr32(LPCSTR String)
 {
 	UINT32 Value = 0;
 
-	for (INT Index = 0; Index < StringLength(String); Index++)
+	for (INT Index = 0; Index < StringLengthA(String); Index++)
 		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
 
 	return Value;
 }
 
-SIZE_T StringLength(LPCSTR String)
+SIZE_T StringLengthA(LPCSTR String)
 {
 	LPCSTR String2 = String;
 
