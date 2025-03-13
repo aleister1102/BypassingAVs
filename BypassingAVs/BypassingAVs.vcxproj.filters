@@ -50,7 +50,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\..\Downloads\cmd.ico">
+    <Image Include="calc.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

