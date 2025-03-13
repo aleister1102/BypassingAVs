@@ -71,5 +71,10 @@ int main() {
 		HASH_VALUE_POSTFIX,
 		HashStringRotr32("NtWaitForSingleObject"));
 
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtQuerySystemInformation",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtQuerySystemInformation"));
+
 	return 0;
 }
