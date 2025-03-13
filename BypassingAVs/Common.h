@@ -1,5 +1,6 @@
 #pragma once
 #include <Windows.h>
+#include <stdio.h>
 
 #define INITIAL_SEED	0x7
 #define RTIME_HASH(API) HashStringRotr32((LPCSTR) API)
@@ -356,3 +357,4 @@ PTEB RtlGetThreadEnvironmentBlock();
 PVOID CopyMemoryEx(IN OUT PVOID Destination, IN CONST PVOID Source, IN SIZE_T Length);
 HANDLE GetCurrentProcessHandle();
 HANDLE GetCurrentThreadHandle();
+VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size);
