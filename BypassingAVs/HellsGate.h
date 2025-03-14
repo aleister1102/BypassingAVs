@@ -10,6 +10,7 @@
 #define NtWaitForSingleObjectHashValue		0xC6F6AFCD
 #define NtQuerySystemInformationHashValue	0xEFFC1CF8
 #define NtSetInformationFileHashValue		0x8A04AED4
+#define NtDelayExecutionHashValue			0x078A465C
 
 // Data structures
 typedef struct _VX_TABLE_ENTRY {
@@ -26,6 +27,7 @@ typedef struct _VX_TABLE {
 	VX_TABLE_ENTRY NtCreateThreadEx;
 	VX_TABLE_ENTRY NtWaitForSingleObject;
 	VX_TABLE_ENTRY NtQuerySystemInformation;
+	VX_TABLE_ENTRY NtDelayExecution;
 } VX_TABLE, * PVX_TABLE;
 
 /// Function prototypes

@@ -76,5 +76,10 @@ int main() {
 		HASH_VALUE_POSTFIX,
 		HashStringRotr32("NtQuerySystemInformation"));
 
+	printf("#define %s%s \t0x%0.8X \n",
+		"NtDelayExecution",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32("NtDelayExecution"));
+
 	return 0;
 }
