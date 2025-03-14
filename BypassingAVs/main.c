@@ -13,7 +13,7 @@ int main() {
 	// Init syscalls for use
 	InitializeSyscalls();
 #ifdef TEST
-	DWORD	seconds = 20;
+	DWORD	seconds = 5;
 	DWORD	dwMilliseconds = seconds * 1000;
 	AntiAnalysis(dwMilliseconds);
 #else

