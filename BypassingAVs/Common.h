@@ -556,6 +556,17 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 
 } SYSTEM_INFORMATION_CLASS;
 
+// Used in Common.c by SelfDelete()
+typedef struct _FILE_RENAME_INFORMATION
+{
+	BOOLEAN ReplaceIfExists;
+	HANDLE RootDirectory;
+	ULONG FileNameLength;
+	_Field_size_bytes_(FileNameLength) WCHAR FileName[1];
+} FILE_RENAME_INFORMATION, * PFILE_RENAME_INFORMATION;
+
+#define NEW_STREAM L"DummyStream"
+
 /*--------------------------------------------------------------------
   FUNCTIONS
 --------------------------------------------------------------------*/
@@ -570,4 +581,5 @@ VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size);
 VOID ZeroMemoryEx(IN OUT PVOID Destination, IN SIZE_T Size);
 BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize);
 INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2);
-LPCWSTR LowerCaseString(IN LPCWSTR String);
+LPCWSTR LowerCaseStringW(IN LPCWSTR String);
+WCHAR ToLowerCharW(IN WCHAR character);

