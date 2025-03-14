@@ -154,7 +154,7 @@ WCHAR ToLowerCharW(IN WCHAR character)
 	if (!character)
 		return NULL;
 
-	WCHAR lowerChar = NULL;
+	WCHAR lowerChar = 0x0;
 
 	if ((UINT)character < 65 || (UINT)character > 90)
 		return character;

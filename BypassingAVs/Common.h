@@ -565,8 +565,6 @@ typedef struct _FILE_RENAME_INFORMATION
 	_Field_size_bytes_(FileNameLength) WCHAR FileName[1];
 } FILE_RENAME_INFORMATION, * PFILE_RENAME_INFORMATION;
 
-#define NEW_STREAM L"DummyStream"
-
 /*--------------------------------------------------------------------
   FUNCTIONS
 --------------------------------------------------------------------*/
