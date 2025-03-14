@@ -128,6 +128,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AntiAnalysis.c" />
     <ClCompile Include="Common.c" />
     <ClCompile Include="HellsGate.c" />
     <ClCompile Include="main.c" />

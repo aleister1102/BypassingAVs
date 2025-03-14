@@ -1,7 +1,5 @@
 #pragma once
-#pragma comment(lib, "ntdll.lib")
-
-#include "Common.h"
+#include <Windows.h>
 
 // Hash values of syscalls
 #define NtCreateSectionHashValue			0xAC2EDA02
@@ -12,9 +10,6 @@
 #define NtWaitForSingleObjectHashValue		0xC6F6AFCD
 #define NtQuerySystemInformationHashValue	0xEFFC1CF8
 #define NtSetInformationFileHashValue		0x8A04AED4
-
-// New alternate datastream name used in HellsGate.c/SelfDeletion()
-#define NEW_STREAM L":DummyStream"
 
 // Data structures
 typedef struct _VX_TABLE_ENTRY {
@@ -38,8 +33,6 @@ typedef struct _VX_TABLE {
 BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory);
 BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDirectory, PVX_TABLE_ENTRY pVxTableEntry);
 BOOL InitializeSyscalls();
-BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
-BOOL SelfDelete();
 
 // Defined in HellsGateAsm.asm
 extern VOID HellsGate(WORD wSystemCall);

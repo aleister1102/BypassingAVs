@@ -89,46 +89,6 @@ VOID ZeroMemoryEx(IN OUT PVOID Destination, IN SIZE_T Size)
 	return;
 }
 
-BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
-{
-	HRSRC		hRsrc = NULL;
-	HGLOBAL		hGlobal = NULL;
-
-	// Get the location to the data stored in .rsrc by its id *IDR_RCDATA1*
-	hRsrc = FindResourceW(NULL, MAKEINTRESOURCEW(IDR_RCDATA1), RT_RCDATA);
-	if (hRsrc == NULL) {
-		// in case of function failure 
-		printf("[!] FindResourceW Failed With Error : %d \n", GetLastError());
-		return FALSE;
-	}
-
-	// Get HGLOBAL, or the handle of the specified resource data since its required to call LockResource later
-	hGlobal = LoadResource(NULL, hRsrc);
-	if (hGlobal == NULL) {
-		// in case of function failure 
-		printf("[!] LoadResource Failed With Error : %d \n", GetLastError());
-		return FALSE;
-	}
-
-	// Get the address of our payload in .rsrc section
-	*ppPayloadAddress = LockResource(hGlobal);
-	if (*ppPayloadAddress == NULL) {
-		// in case of function failure 
-		printf("[!] LockResource Failed With Error : %d \n", GetLastError());
-		return FALSE;
-	}
-
-	// Get the size of our payload in .rsrc section
-	*pPayloadSize = SizeofResource(NULL, hRsrc);
-	if (*pPayloadSize == NULL) {
-		// in case of function failure 
-		printf("[!] SizeofResource Failed With Error : %d \n", GetLastError());
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2)
 {
 	for (; *String1 == *String2; String1++, String2++)

