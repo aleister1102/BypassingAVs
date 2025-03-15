@@ -146,5 +146,3 @@ LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 
 	return lowerString;
 }
-
-

