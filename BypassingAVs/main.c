@@ -3,13 +3,13 @@
 
 //#define TEST
 
-//#define LOCAL_INJECTION
+#define LOCAL_INJECTION
 
 #ifndef LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"
 #endif
 
-//#define ANTI_ANALYSIS
+#define ANTI_ANALYSIS
 
 int main() {
 	// Init syscalls for use

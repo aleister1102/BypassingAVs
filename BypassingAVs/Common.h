@@ -646,20 +646,21 @@ typedef struct _USTRING
 
 } USTRING, * PUSTRING;
 
-typedef NTSTATUS(NTAPI* fnSystemFunction032) (
-	struct USTRING* Img,
-	struct USTRING* Key
-	);
+typedef NTSTATUS(NTAPI* fnSystemFunction032) (struct USTRING* Img, struct USTRING* Key);
+
+#define SystemFunction032HashValue      0xBC36C4B7
 
 BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DWORD dwRc4KeySize, IN DWORD sPayloadSize);
 
 // Defined and used by ApiHashing.cx
 #define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
 
+
 FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
 FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue);
 
 HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName);
 HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue);
+
 
 BOOL InitializeWinApis();

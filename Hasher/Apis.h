@@ -11,6 +11,7 @@ PCHAR NativeApis[] = {
 	"NtQuerySystemInformation",
 	"NtDelayExecution"
 };
+// Remember to update this value if you add/remove any APIs
 DWORD NativeApisCount = 8;
 
 PCHAR WindowsApis[] = {
@@ -28,5 +29,7 @@ PCHAR WindowsApis[] = {
 	"GetModuleFileNameW",
 	"CreateFileW",
 	"SetFileInformationByHandle",
+	"SystemFunction032"
 };
-DWORD WindowsApisCount = 14;
+// Remember to update this value if you add/remove any APIs
+DWORD WindowsApisCount = 15;
