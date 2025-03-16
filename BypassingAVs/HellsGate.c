@@ -2,8 +2,12 @@
 
 VX_TABLE g_SyscallsTable = { 0 };
 
-BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory) 
+BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory)
 {
+	if (!pModuleBase) {
+		return FALSE;
+	}
+
 	// Get DOS header
 	PIMAGE_DOS_HEADER pImageDosHeader = (PIMAGE_DOS_HEADER)pModuleBase;
 	if (pImageDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {

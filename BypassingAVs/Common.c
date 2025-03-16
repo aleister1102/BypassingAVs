@@ -142,13 +142,25 @@ WCHAR ToLowerCharW(IN WCHAR character)
 	return lowerChar;
 }
 
+CHAR ToLowerCharA(IN CHAR character)
+{
+	CHAR lowerChar = 0x0;
+
+	if ((UINT)character < 65 || (UINT)character > 90)
+		return character;
+
+	lowerChar = character + 32;
+
+	return lowerChar;
+}
+
 // TODO: handle logic for the caller to release memory
 LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	if (!str)
 		return NULL;
 
 	// Get length of the string
-	SIZE_T length			= StringLengthW(str);
+	SIZE_T length = StringLengthW(str);
 
 	// Allocate memory for the lowercase string
 	PWSTR lowerString = (PWSTR)HeapAlloc(
@@ -163,6 +175,33 @@ LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	// Lowercasing the string
 	for (SIZE_T i = 0; i < length; i++) {
 		lowerString[i] = ToLowerCharW(str[i]);
+	}
+	lowerString[length] = L'\0';
+
+	return lowerString;
+}
+
+LPCSTR LowerCaseStringA(IN LPCSTR str) 
+{
+	if (!str)
+		return NULL;
+
+	// Get length of the string
+	SIZE_T length = StringLengthA(str);
+
+	// Allocate memory for the lowercase string
+	PSTR lowerString = (PSTR)HeapAlloc(
+		GetProcessHeap(),
+		HEAP_ZERO_MEMORY,
+		(length + 1) * sizeof(CHAR)
+	);
+
+	if (!lowerString)
+		return NULL;
+
+	// Lowercasing the string
+	for (SIZE_T i = 0; i < length; i++) {
+		lowerString[i] = ToLowerCharA(str[i]);
 	}
 	lowerString[length] = L'\0';
 

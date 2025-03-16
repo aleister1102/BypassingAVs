@@ -18,6 +18,9 @@ int main() {
 		return -1;
 	}
 
+	// Load user32.dll for use
+	LoadLibraryA("User32.dll");
+
 	// Init WinApis for use
 	if (InitializeWinApis() == FALSE) {
 		printf("[!] Failed To Initialize Windows APIs\n");

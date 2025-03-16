@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <stdio.h>
 
-// TODO: handle wide-character string
 UINT32 HashStringRotr32A(LPCSTR String);
 SIZE_T StringLengthA(LPCSTR String);
 UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);

