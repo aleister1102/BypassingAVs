@@ -132,12 +132,13 @@ WCHAR ToLowerCharW(IN WCHAR character)
 	return lowerChar;
 }
 
+// TODO: handle logic for the caller to release memory
 LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	if (!str)
 		return NULL;
 
 	// Get length of the string
-	SIZE_T length = StringLengthW(str);
+	SIZE_T length			= StringLengthW(str);
 
 	// Allocate memory for the lowercase string
 	PWSTR lowerString = (PWSTR)HeapAlloc(
@@ -156,4 +157,31 @@ LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	lowerString[length] = L'\0';
 
 	return lowerString;
+}
+
+BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2)
+{
+	int		len1 = StringLengthW(Str1);
+	int		len2 = StringLengthW(Str2);
+
+	int		i = 0;
+	int		j = 0;
+
+	// Checking length. We dont want to overflow the buffers
+	if (len1 >= MAX_PATH || len2 >= MAX_PATH)
+		return FALSE;
+
+	// Converting Str1 to lower case string (lStr1)
+	PCWSTR	lStr1 = LowerCaseStringW(Str1);
+
+	// Converting Str2 to lower case string (lStr2)
+	PCWSTR	lStr2 = LowerCaseStringW(Str2);
+
+	// Comparing the lower-case strings
+	if (StringCompareW(lStr1, lStr2) == 0)
+	{
+		return TRUE;
+	}
+
+	return FALSE;
 }

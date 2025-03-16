@@ -79,9 +79,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	while (TRUE) {
 		// Small check for the process's name size
 		// Comparing the enumerated process name to what we want to target
-		LPCWSTR lowerCaseTargetProcName = LowerCaseStringW(szProcName);
-		LPCWSTR lowerCaseProcName = LowerCaseStringW(SystemProcInfo->ImageName.Buffer);
-		if (SystemProcInfo->ImageName.Length && StringCompareW(lowerCaseTargetProcName, lowerCaseProcName) == 0) {
+		if (SystemProcInfo->ImageName.Length && IsStringEqual(szProcName, SystemProcInfo->ImageName.Buffer) == 0) {
 			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
 			*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
 			break;
