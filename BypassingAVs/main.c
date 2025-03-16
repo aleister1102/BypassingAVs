@@ -20,6 +20,8 @@ int main() {
 	//	printf("File Is Being Analyzed!\n");
 	//}
 #ifdef TEST
+
+	GetProcAddressReplacement(GetModuleHandle(L"ntdll.dll"), "NtAllocateVirtualMemory");
 	
 #else
 	PVOID pPayloadAddress = NULL;

@@ -596,6 +596,7 @@ INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2);
 LPCWSTR LowerCaseStringW(IN LPCWSTR String);
 WCHAR ToLowerCharW(IN WCHAR character);
 SIZE_T StringLengthW(IN LPCWSTR String);
+INT StringCompareA(IN LPCSTR String1, IN LPCSTR String2);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
@@ -626,3 +627,6 @@ typedef NTSTATUS(NTAPI* fnSystemFunction032) (
 	);
 
 BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DWORD dwRc4KeySize, IN DWORD sPayloadSize);
+
+// Defined in ApiHashing.cx`
+FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);

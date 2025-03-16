@@ -2,7 +2,8 @@
 
 VX_TABLE g_SyscallsTable = { 0 };
 
-BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory) {
+BOOL GetImageExportDirectory(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY* ppImageExportDirectory) 
+{
 	// Get DOS header
 	PIMAGE_DOS_HEADER pImageDosHeader = (PIMAGE_DOS_HEADER)pModuleBase;
 	if (pImageDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
@@ -65,8 +66,6 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 
 	return TRUE;
 }
-
-
 
 BOOL InitializeSyscalls() {
 	//printf("[i] Initializing Syscalls Table...\n");

@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AntiAnalysis.c" />
+    <ClCompile Include="ApiHashing.c" />
     <ClCompile Include="Common.c" />
     <ClCompile Include="Cryptor.c" />
     <ClCompile Include="HellsGate.c" />
