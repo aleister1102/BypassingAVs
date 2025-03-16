@@ -30,7 +30,7 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 		PCHAR pczFunctionName = (PCHAR)((PBYTE)pModuleBase + pdwAddressOfNames[cx]);
 		PVOID pFunctionAddress = (PBYTE)pModuleBase + pdwAddressOfFunctions[pwAddressOfNameOrdinales[cx]];
 
-		if (RTIME_HASH(pczFunctionName) == pVxTableEntry->dwHash) {
+		if (RTIME_HASHA(pczFunctionName) == pVxTableEntry->dwHash) {
 			pVxTableEntry->pAddress = pFunctionAddress;
 
 			// Quick and dirty fix in case the function has been hooked

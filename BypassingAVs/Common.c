@@ -1,10 +1,20 @@
 #include "Common.h"
 
-UINT32 HashStringRotr32(LPCSTR String)
+UINT32 HashStringRotr32A(LPCSTR String)
 {
 	UINT32 Value = 0;
 
 	for (INT Index = 0; Index < StringLengthA(String); Index++)
+		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
+
+	return Value;
+}
+
+UINT32 HashStringRotr32W(LPCWSTR String)
+{
+	UINT32 Value = 0;
+
+	for (INT Index = 0; Index < StringLengthW(String); Index++)
 		Value = String[Index] + HashStringRotr32Sub(Value, INITIAL_SEED);
 
 	return Value;

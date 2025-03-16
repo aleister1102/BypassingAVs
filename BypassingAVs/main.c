@@ -13,9 +13,18 @@
 
 int main() {
 	// Init syscalls for use
-	InitializeSyscalls();
+	if (InitializeSyscalls() == FALSE) {
+		printf("[!] Failed To Initialize Syscalls\n");
+		return -1;
+	}
+
+	// Init WinApis for use
+	if (InitializeWinApis() == FALSE) {
+		printf("[!] Failed To Initialize Windows APIs\n");
+		return -1;
+	}
+
 #ifdef TEST
-	GetProcAddressReplacement(GetModuleHandleReplacement(L"NTDLL.dll"), "NtAllocateVirtualMemory");
 #else
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;

@@ -36,6 +36,9 @@
     <ClCompile Include="ApiHashing.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Typedef.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
