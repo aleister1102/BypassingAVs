@@ -112,8 +112,6 @@ BOOL InitializeSyscalls() {
 		)
 		return FALSE;
 
-	printf("[+] DONE!\n");
-
 	return TRUE;
 }
 
