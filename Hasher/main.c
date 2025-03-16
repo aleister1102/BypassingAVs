@@ -137,16 +137,14 @@ int main() {
 		HashStringRotr32A("SetFileInformationByHandle"));	
 	
 	printf("#define %s%s \t0x%0.8X \n",
-		"KERNEL32DLL",
-		HASH_VALUE_POSTFIX,
-		HashStringRotr32A("kernel.dll"));	
-	
-	printf("#define %s%s \t0x%0.8X \n",
 		"USER32DLL",
 		HASH_VALUE_POSTFIX,
 		HashStringRotr32A("user32.dll"));
 
+	printf("#define %s%s \t0x%0.8X \n",
+		"KERNEL32DLL",
+		HASH_VALUE_POSTFIX,
+		HashStringRotr32A("kernel32.dll"));
 	
-
 	return 0;
 }
