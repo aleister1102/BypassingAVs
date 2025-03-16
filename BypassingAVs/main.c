@@ -14,11 +14,11 @@ int main() {
 	InitializeSyscalls();
 
 	// Anti-analysis techniques
-	DWORD	seconds = 5;
-	DWORD	dwMilliseconds = seconds * 1000;
-	if (AntiAnalysis(dwMilliseconds) == FALSE) {
-		printf("File Is Being Analyzed!\n");
-	}
+	//DWORD	seconds = 5;
+	//DWORD	dwMilliseconds = seconds * 1000;
+	//if (AntiAnalysis(dwMilliseconds) == FALSE) {
+	//	printf("File Is Being Analyzed!\n");
+	//}
 #ifdef TEST
 	
 #else

