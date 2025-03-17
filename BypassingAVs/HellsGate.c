@@ -72,7 +72,7 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 }
 
 BOOL InitializeSyscalls() {
-	//printf("[i] Initializing Syscalls Table...\n");
+	//PRINTA("[i] Initializing Syscalls Table...\n");
 
 	// Get the PEB
 	PTEB pCurrentTeb = RtlGetThreadEnvironmentBlock();

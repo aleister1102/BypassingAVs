@@ -8,10 +8,10 @@ FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName)
 	// Getting the export directory
 	PIMAGE_EXPORT_DIRECTORY pImageExportDirectory = NULL;
 	if (GetImageExportDirectory(hModule, &pImageExportDirectory) == FALSE) {
-		printf("[!] GetImageExportDirectory Failed\n");
+		PRINTA("[!] GetImageExportDirectory Failed\n");
 		return FALSE;
 	}
-	printf("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
+	PRINTA("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
 
 	// Getting the function's names array pointer
 	PDWORD pdwAddressOfFunctions = (PDWORD)((PBYTE)hModule + pImageExportDirectory->AddressOfFunctions);
@@ -33,12 +33,12 @@ FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName)
 		// Getting the address of the function through it's ordinal
 		if (StringCompareA(lpApiName, pFunctionName) == 0) {
 			PVOID pFunctionAddress = (PVOID)(pBase + pdwAddressOfFunctions[wFunctionOrdinal]);
-			printf("[+] Found API - Name: %s - Address: 0x%p - Ordinal: %d\n", pFunctionName, pFunctionAddress, wFunctionOrdinal);
+			PRINTA("[+] Found API - Name: %s - Address: 0x%p - Ordinal: %d\n", pFunctionName, pFunctionAddress, wFunctionOrdinal);
 			return  pFunctionAddress;
 		}
 	}
 
-	printf("[!] CAN NOT FIND API - \t NAME: %s\n", lpApiName);
+	PRINTA("[!] CAN NOT FIND API - \t NAME: %s\n", lpApiName);
 	return NULL;
 }
 
@@ -54,10 +54,10 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 	// Getting the export directory
 	PIMAGE_EXPORT_DIRECTORY pImageExportDirectory = NULL;
 	if (GetImageExportDirectory(hModule, &pImageExportDirectory) == FALSE) {
-		printf("[!] GetImageExportDirectory Failed\n");
+		PRINTA("[!] GetImageExportDirectory Failed\n");
 		return FALSE;
 	}
-	//printf("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
+	//PRINTA("[+] Found EAT Of %p Handle At %p\n", pBase, pImageExportDirectory);
 
 	// Getting the function's names array pointer
 	PDWORD pdwAddressOfFunctions = (PDWORD)((PBYTE)hModule + pImageExportDirectory->AddressOfFunctions);
@@ -79,12 +79,12 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 		// Getting the address of the function through it's ordinal
 		if (dwApiNameHashValue == RTIME_HASHA(pFunctionName)) {
 			PVOID pFunctionAddress = (PVOID)(pBase + pdwAddressOfFunctions[wFunctionOrdinal]);
-			printf("[+] Found API - Name: %s - Address: 0x%p - Ordinal: %d\n", pFunctionName, pFunctionAddress, wFunctionOrdinal);
+			PRINTA("[+] Found API - Name: %s - Address: 0x%p - Ordinal: %d\n", pFunctionName, pFunctionAddress, wFunctionOrdinal);
 			return  pFunctionAddress;
 		}
 	}
 
-	printf("[!] Can Not Find API - \t Hash: %d\n", dwApiNameHashValue);
+	PRINTA("[!] Can Not Find API - \t Hash: %d\n", dwApiNameHashValue);
 	return NULL;
 }
 
@@ -109,7 +109,7 @@ HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName)
 			// Check if both equal
 			if (IsStringEqual(pDte->FullDllName.Buffer, szModuleName)) {
 				HMODULE hModule = (HMODULE)(pDte->InInitializationOrderLinks.Flink);
-				wprintf(L"[+] Found Dll \"%s\" at %p\n", pDte->FullDllName.Buffer, (PVOID)hModule);
+				PRINTW(L"[+] Found Dll \"%s\" at %p\n", pDte->FullDllName.Buffer, (PVOID)hModule);
 				return hModule;
 			}
 		}
@@ -147,7 +147,7 @@ HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue)
 			PWSTR lowerModuleName = LowerCaseStringW(moduleName);
 			if (dwModuleNameHashValue == RTIME_HASHW(lowerModuleName)) {
 				HMODULE hModule = (HMODULE)(pDte->InInitializationOrderLinks.Flink);
-				wprintf(L"[+] Found Dll \"%s\" at %p\n", pDte->FullDllName.Buffer, (PVOID)hModule);
+				PRINTW(L"[+] Found Dll \"%s\" at %p\n", pDte->FullDllName.Buffer, (PVOID)hModule);
 				return hModule;
 			}
 		}

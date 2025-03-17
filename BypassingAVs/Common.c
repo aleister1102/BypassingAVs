@@ -69,19 +69,21 @@ HANDLE GetCurrentThreadHandle() {
 
 VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size)
 {
-	printf("unsigned char %s[] = {", Name);
+	PRINTA("unsigned char %s[] = {", Name);
 
 	for (int i = 0; i < Size; i++) {
 		if (i % 16 == 0)
-			printf("\n\t");
+			PRINTA("\n\t");
 
-		if (i < Size - 1)
-			printf("0x%0.2X, ", Data[i]);
-		else
-			printf("0x%0.2X ", Data[i]);
+		if (i < Size - 1) {
+			PRINTA("0x%0.2X, ", Data[i]);
+		}
+		else {
+			PRINTA("0x%0.2X ", Data[i]);
+		}
 	}
 
-	printf("};\n\n");
+	PRINTA("};\n\n");
 }
 
 VOID ZeroMemoryEx(IN OUT PVOID Destination, IN SIZE_T Size)
@@ -181,7 +183,7 @@ LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	return lowerString;
 }
 
-LPCSTR LowerCaseStringA(IN LPCSTR str) 
+LPCSTR LowerCaseStringA(IN LPCSTR str)
 {
 	if (!str)
 		return NULL;
@@ -233,4 +235,18 @@ BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2)
 	}
 
 	return FALSE;
+}
+
+extern void* __cdecl memset(void*, int, size_t);
+#pragma intrinsic(memset)
+#pragma function(memset)
+
+void* __cdecl memset(void* Destination, int Value, size_t Size) {
+	unsigned char* p = (unsigned char*)Destination;
+	while (Size > 0) {
+		*p = (unsigned char)Value;
+		p++;
+		Size--;
+	}
+	return Destination;
 }

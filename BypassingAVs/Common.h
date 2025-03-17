@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "HellsGate.h"
 #include "Typedef.h"
+#include "Debug.h"
 
 // Initial seed used for hashing
 #define INITIAL_SEED	0x7

