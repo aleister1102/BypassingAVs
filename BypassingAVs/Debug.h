@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 
@@ -33,5 +33,10 @@
         char c = 0;                                                                         \
         ReadConsoleA( GetStdHandle( STD_INPUT_HANDLE ), &c, 1, NULL, NULL );                \
     }
+#else
+
+#define PRINTW( STR, ... )
+#define PRINTA( STR, ... )
+#define GETCHAR()
 
 #endif
