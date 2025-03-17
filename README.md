@@ -1,3 +1,3 @@
 # BypassingAVs
 
-Implement techniques learnt from MalDevAcademy
+Implement techniques learned from MalDevAcademy
