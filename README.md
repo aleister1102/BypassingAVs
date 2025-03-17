@@ -1,3 +1,3 @@
 # BypassingAVs
 
-Demo: ![Demo Video](./demo.mkv)
+Demo: [Demo Video](./demo.mkv)
