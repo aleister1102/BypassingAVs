@@ -57,7 +57,7 @@ BOOL SelfDelete() {
 
 	// Setting the new data stream name buffer and size in the 'FILE_RENAME_INFO' structure
 	pFileRenameInfo->FileNameLength = (DWORD)NewStreamSize;
-	CopyMemory(pFileRenameInfo->FileName, NewStream, pFileRenameInfo->FileNameLength);
+	CopyMemoryEx(pFileRenameInfo->FileName, NewStream, pFileRenameInfo->FileNameLength);
 
 	// Renaming the data stream
 	if (!SetFileInformationByHandle(
