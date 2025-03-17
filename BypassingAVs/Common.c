@@ -237,6 +237,7 @@ BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2)
 	return FALSE;
 }
 
+// Used for removing CRT lib
 extern void* __cdecl memset(void*, int, size_t);
 #pragma intrinsic(memset)
 #pragma function(memset)

@@ -1,8 +1,3 @@
-; Hell's Gate
-; Dynamic system call invocation 
-; 
-; by smelly__vx (@RtlMateusz) and am0nsec (@am0nsec)
-
 .data
 	wSystemCall DWORD 000h
 

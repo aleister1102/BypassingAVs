@@ -128,7 +128,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -142,6 +142,7 @@
     <ClCompile Include="Common.c" />
     <ClCompile Include="Cryptor.c" />
     <ClCompile Include="HellsGate.c" />
+    <ClCompile Include="IatCamouflage.h" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Injection.c" />
     <ClCompile Include="Typedef.h" />
