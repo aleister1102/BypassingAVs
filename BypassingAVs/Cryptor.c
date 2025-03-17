@@ -9,7 +9,7 @@ BYTE BruteForceDecryption(IN BYTE HintByte, IN PBYTE pProtectedKey, IN SIZE_T sK
 
 	BYTE            b = 0;
 	INT             i = 0;
-	PBYTE           pRealKey = (PBYTE)malloc(sKey);
+	PBYTE           pRealKey = (PBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sKey);
 
 	if (!pRealKey)
 		return NULL;
