@@ -4,7 +4,7 @@
 
 //#define TEST
 
-#define LOCAL_INJECTION
+//#define LOCAL_INJECTION
 
 #ifndef LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"

