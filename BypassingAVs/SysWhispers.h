@@ -85,15 +85,6 @@ typedef struct _SYSTEM_HANDLE_INFORMATION
 	SYSTEM_HANDLE Handles[1];
 } SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
 
-#ifndef _UNICODE_STRING
-typedef struct _UNICODE_STRING
-{
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
-#endif
-
 #ifndef InitializeObjectAttributes
 #define InitializeObjectAttributes( p, n, a, r, s ) { \
 	(p)->Length = sizeof( OBJECT_ATTRIBUTES );        \
@@ -105,51 +96,13 @@ typedef struct _UNICODE_STRING
 }
 #endif
 
-#ifndef _OBJECT_ATTRIBUTES
-typedef struct _OBJECT_ATTRIBUTES
-{
-	ULONG           Length;
-	HANDLE          RootDirectory;
-	PUNICODE_STRING ObjectName;
-	ULONG           Attributes;
-	PVOID           SecurityDescriptor;
-	PVOID           SecurityQualityOfService;
-} OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
-#endif
-
-#ifndef _SECTION_INHERIT
-typedef enum _SECTION_INHERIT
-{
-	ViewShare = 1,
-	ViewUnmap = 2
-} SECTION_INHERIT, *PSECTION_INHERIT;
-#endif
-
-#ifndef _SYSTEM_INFORMATION_CLASS
-typedef enum _SYSTEM_INFORMATION_CLASS
-{
-	SystemBasicInformation = 0,
-	SystemPerformanceInformation = 2,
-	SystemTimeOfDayInformation = 3,
-	SystemProcessInformation = 5,
-	SystemProcessorPerformanceInformation = 8,
-	SystemHandleInformation = 16,
-	SystemInterruptInformation = 23,
-	SystemExceptionInformation = 33,
-	SystemRegistryQuotaInformation = 37,
-	SystemLookasideInformation = 45,
-	SystemCodeIntegrityInformation = 103,
-	SystemPolicyInformation = 134,
-} SYSTEM_INFORMATION_CLASS, *PSYSTEM_INFORMATION_CLASS;
-#endif
-
 typedef struct _PS_ATTRIBUTE_LIST
 {
 	SIZE_T       TotalLength;
 	PS_ATTRIBUTE Attributes[1];
 } PS_ATTRIBUTE_LIST, *PPS_ATTRIBUTE_LIST;
 
-EXTERN_C NTSTATUS Sw3NtCreateSection(
+EXTERN_C NTSTATUS NtCreateSection(
 	OUT PHANDLE SectionHandle,
 	IN ACCESS_MASK DesiredAccess,
 	IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
@@ -158,7 +111,7 @@ EXTERN_C NTSTATUS Sw3NtCreateSection(
 	IN ULONG AllocationAttributes,
 	IN HANDLE FileHandle OPTIONAL);
 
-EXTERN_C NTSTATUS Sw3NtMapViewOfSection(
+EXTERN_C NTSTATUS NtMapViewOfSection(
 	IN HANDLE SectionHandle,
 	IN HANDLE ProcessHandle,
 	IN OUT PVOID BaseAddress,
@@ -170,14 +123,14 @@ EXTERN_C NTSTATUS Sw3NtMapViewOfSection(
 	IN ULONG AllocationType,
 	IN ULONG Win32Protect);
 
-EXTERN_C NTSTATUS Sw3NtUnmapViewOfSection(
+EXTERN_C NTSTATUS NtUnmapViewOfSection(
 	IN HANDLE ProcessHandle,
 	IN PVOID BaseAddress);
 
-EXTERN_C NTSTATUS Sw3NtClose(
+EXTERN_C NTSTATUS NtClose(
 	IN HANDLE Handle);
 
-EXTERN_C NTSTATUS Sw3NtCreateThreadEx(
+EXTERN_C NTSTATUS NtCreateThreadEx(
 	OUT PHANDLE ThreadHandle,
 	IN ACCESS_MASK DesiredAccess,
 	IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
@@ -190,18 +143,18 @@ EXTERN_C NTSTATUS Sw3NtCreateThreadEx(
 	IN SIZE_T MaximumStackSize,
 	IN PPS_ATTRIBUTE_LIST AttributeList OPTIONAL);
 
-EXTERN_C NTSTATUS Sw3NtWaitForSingleObject(
+EXTERN_C NTSTATUS NtWaitForSingleObject(
 	IN HANDLE ObjectHandle,
 	IN BOOLEAN Alertable,
 	IN PLARGE_INTEGER TimeOut OPTIONAL);
 
-EXTERN_C NTSTATUS Sw3NtQuerySystemInformation(
+EXTERN_C NTSTATUS NtQuerySystemInformation(
 	IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
 	IN OUT PVOID SystemInformation,
 	IN ULONG SystemInformationLength,
 	OUT PULONG ReturnLength OPTIONAL);
 
-EXTERN_C NTSTATUS Sw3NtDelayExecution(
+EXTERN_C NTSTATUS NtDelayExecution(
 	IN BOOLEAN Alertable,
 	IN PLARGE_INTEGER DelayInterval);
 

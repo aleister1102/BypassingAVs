@@ -93,7 +93,7 @@ PVOID SC_Address(PVOID NtApiAddress)
     {
         // we can use the original code for this system call :)
         #if defined(DEBUG)
-            PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
         #endif
         return SyscallAddress;
     }
@@ -111,7 +111,7 @@ PVOID SC_Address(PVOID NtApiAddress)
         if (!memcmp((PVOID)syscall_code, SyscallAddress, sizeof(syscall_code)))
         {
         #if defined(DEBUG)
-            PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
         #endif
             return SyscallAddress;
         }
@@ -124,7 +124,7 @@ PVOID SC_Address(PVOID NtApiAddress)
         if (!memcmp((PVOID)syscall_code, SyscallAddress, sizeof(syscall_code)))
         {
         #if defined(DEBUG)
-            PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
         #endif
             return SyscallAddress;
         }
@@ -229,22 +229,6 @@ BOOL SW3_PopulateSyscallList()
     }
 
     return TRUE;
-}
-
-EXTERN_C DWORD SW3_GetSyscallNumber(DWORD FunctionHash)
-{
-    // Ensure SW3_SyscallList is populated.
-    if (!SW3_PopulateSyscallList()) return -1;
-
-    for (DWORD i = 0; i < SW3_SyscallList.Count; i++)
-    {
-        if (FunctionHash == SW3_SyscallList.Entries[i].Hash)
-        {
-            return i;
-        }
-    }
-
-    return -1;
 }
 
 EXTERN_C PVOID SW3_GetSyscallAddress(DWORD FunctionHash)

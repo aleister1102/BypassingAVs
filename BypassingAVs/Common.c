@@ -260,15 +260,3 @@ void* __cdecl memset(void* Destination, int Value, size_t Size) {
 	}
 	return Destination;
 }
-
-extern int __cdecl rand(void);
-#pragma intrinsic(rand)
-#pragma function(rand)
-
-int __cdecl rand(void) {
-	static unsigned int seed = 2463534242;
-	seed ^= seed << 13;
-	seed ^= seed >> 17;
-	seed ^= seed << 5;
-	return (int)(seed & 0x7FFFFFFF);  // Keep it within positive int range
-}

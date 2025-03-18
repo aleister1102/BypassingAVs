@@ -152,7 +152,6 @@
     <MASM Include="HellsGateAsm.asm">
       <FileType>Document</FileType>
     </MASM>
-    <MASM Include="SysWhispers-asm.x64.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />

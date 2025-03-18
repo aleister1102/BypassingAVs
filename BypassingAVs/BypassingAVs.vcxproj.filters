@@ -67,9 +67,6 @@
     <MASM Include="HellsGateAsm.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="SysWhispers-asm.x64.asm">
-      <Filter>Source Files</Filter>
-    </MASM>
   </ItemGroup>
   <ItemGroup>
     <Image Include="calc.ico">

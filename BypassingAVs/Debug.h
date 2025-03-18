@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 
@@ -30,8 +30,9 @@
 // getchar replacement
 #define GETCHAR()                                                                           \
     if (1) {                                                                                \
-        char c = 0;                                                                         \
-        ReadConsoleA( GetStdHandle( STD_INPUT_HANDLE ), &c, 1, NULL, NULL );                \
+        char c = 0;\
+    DWORD sCharRead = 0;\
+        ReadConsoleA( GetStdHandle( STD_INPUT_HANDLE ), &c, 1, &sCharRead, NULL );                \
     }
 #else
 

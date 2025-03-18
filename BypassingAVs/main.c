@@ -10,7 +10,7 @@
 #define TARGET_PROCESS L"Notepad++.exe"
 #endif
 
-#define ANTI_ANALYSIS
+//#define ANTI_ANALYSIS
 
 int main() {
 	// Init syscalls for use
