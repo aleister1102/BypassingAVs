@@ -145,18 +145,21 @@
     <ClCompile Include="IatCamouflage.h" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Injection.c" />
+    <ClCompile Include="SysWhispers.c" />
     <ClCompile Include="Typedef.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="HellsGateAsm.asm">
       <FileType>Document</FileType>
     </MASM>
+    <MASM Include="SysWhispers-asm.x64.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="HellsGate.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SysWhispers.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="calc.ico" />

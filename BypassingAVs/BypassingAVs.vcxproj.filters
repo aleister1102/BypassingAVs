@@ -42,6 +42,9 @@
     <ClCompile Include="IatCamouflage.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="SysWhispers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -56,9 +59,15 @@
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SysWhispers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="HellsGateAsm.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="SysWhispers-asm.x64.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
