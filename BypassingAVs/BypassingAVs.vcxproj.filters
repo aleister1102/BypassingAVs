@@ -78,4 +78,12 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\Signer.ps1">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
