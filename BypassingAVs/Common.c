@@ -238,6 +238,15 @@ BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2)
 }
 
 // Used for removing CRT lib
+PVOID _memcpy(PVOID Destination, PVOID Source, SIZE_T Size)
+{
+	for (volatile int i = 0; i < Size; i++) {
+		((BYTE*)Destination)[i] = ((BYTE*)Source)[i];
+	}
+	return Destination;
+}
+
+
 extern void* __cdecl memset(void*, int, size_t);
 #pragma intrinsic(memset)
 #pragma function(memset)
@@ -250,4 +259,16 @@ void* __cdecl memset(void* Destination, int Value, size_t Size) {
 		Size--;
 	}
 	return Destination;
+}
+
+extern int __cdecl rand(void);
+#pragma intrinsic(rand)
+#pragma function(rand)
+
+int __cdecl rand(void) {
+	static unsigned int seed = 2463534242;
+	seed ^= seed << 13;
+	seed ^= seed >> 17;
+	seed ^= seed << 5;
+	return (int)(seed & 0x7FFFFFFF);  // Keep it within positive int range
 }

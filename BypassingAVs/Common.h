@@ -47,11 +47,14 @@ extern DWORD g_dwMouseClicks;
 /*--------------------------------------------------------------------
   STRUCTURES
 --------------------------------------------------------------------*/
+#ifndef _UNICODE_STRING
+#define _UNICODE_STRING
 typedef struct _LSA_UNICODE_STRING {
 	USHORT Length;
 	USHORT MaximumLength;
 	PWSTR  Buffer;
 } LSA_UNICODE_STRING, * PLSA_UNICODE_STRING, UNICODE_STRING, * PUNICODE_STRING, * PUNICODE_STR;
+#endif
 
 typedef struct _LDR_MODULE {
 	LIST_ENTRY              InLoadOrderModuleList;
@@ -362,6 +365,8 @@ typedef struct _LDR_DATA_TABLE_ENTRY {
 	LIST_ENTRY StaticLinks;
 } LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
 
+#ifndef _OBJECT_ATTRIBUTES
+#define _OBJECT_ATTRIBUTES
 typedef struct _OBJECT_ATTRIBUTES {
 	ULONG Length;
 	PVOID RootDirectory;
@@ -370,6 +375,7 @@ typedef struct _OBJECT_ATTRIBUTES {
 	PVOID SecurityDescriptor;
 	PVOID SecurityQualityOfService;
 } OBJECT_ATTRIBUTES, * POBJECT_ATTRIBUTES;
+#endif
 
 typedef struct _INITIAL_TEB {
 	PVOID                StackBase;
@@ -380,10 +386,13 @@ typedef struct _INITIAL_TEB {
 } INITIAL_TEB, * PINITIAL_TEB;
 
 // Used in Injection.c
+#ifndef _SECTION_INHERIT
+#define _SECTION_INHERIT
 typedef enum _SECTION_INHERIT {
 	ViewShare = 1,
 	ViewUnmap = 2
 } SECTION_INHERIT, * PSECTION_INHERIT;
+#endif
 
 // Used in HellsGate.c
 typedef LONG KPRIORITY, * PKPRIORITY;
@@ -505,6 +514,8 @@ typedef struct _SYSTEM_PROCESS_INFORMATION
 	SYSTEM_THREAD_INFORMATION Threads[1];   // This type is not defined in the structure but was added for convenience.
 } SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
+#ifndef _SYSTEM_INFORMATION_CLASS
+#define _SYSTEM_INFORMATION_CLASS
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
 	SystemBasicInformation = 0,
@@ -592,6 +603,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 	MaxSystemInfoClass = 82  // MaxSystemInfoClass should always be the last enum
 
 } SYSTEM_INFORMATION_CLASS;
+#endif
 
 // Used in AntiAnalysis.c by SelfDelete()
 typedef struct _FILE_RENAME_INFORMATION
@@ -665,3 +677,6 @@ HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue);
 
 
 BOOL InitializeWinApis();
+
+// Used for removing CRT lib
+PVOID _memcpy(PVOID Destination, PVOID Source, SIZE_T Size);
