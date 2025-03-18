@@ -261,7 +261,9 @@ void* __cdecl memset(void* Destination, int Value, size_t Size) {
 	return Destination;
 }
 
-// Used for building in Release mode
+// Used for building in Release
+#ifdef _MSC_VER  // If compiling with MSVC
+#ifndef _DEBUG  // If it's a Release build
 extern int __cdecl rand(void);
 #pragma intrinsic(rand)
 #pragma function(rand)
@@ -273,3 +275,5 @@ int __cdecl rand(void) {
 	seed ^= seed << 5;
 	return (int)(seed & 0x7FFFFFFF);  // Keep it within positive int range
 }
+#endif
+#endif

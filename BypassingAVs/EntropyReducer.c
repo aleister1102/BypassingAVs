@@ -1,5 +1,4 @@
 #include "EntropyReducer.h"
-#include "Common.h"
 
 struct LINKED_LIST;
 typedef struct _LINKED_LIST

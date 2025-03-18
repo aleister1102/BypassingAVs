@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Windows.h>
+#include "Common.h"
 
 
 #ifndef HELPER_H

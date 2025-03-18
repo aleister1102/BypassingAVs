@@ -9,10 +9,6 @@
 #include <Windows.h>
 #include "Common.h"
 
-#define SW3_SEED 0xA3AB9266
-#define SW3_ROL8(v) (v << 8 | v >> 24)
-#define SW3_ROR8(v) (v >> 8 | v << 24)
-#define SW3_ROX8(v) ((SW3_SEED % 2) ? SW3_ROL8(v) : SW3_ROR8(v))
 #define SW3_MAX_ENTRIES 600
 #define SW3_RVA2VA(Type, DllBase, Rva) (Type)((ULONG_PTR) DllBase + Rva)
 
@@ -51,7 +47,6 @@ typedef struct _SW3_PEB {
 	PSW3_PEB_LDR_DATA Ldr;
 } SW3_PEB, *PSW3_PEB;
 
-DWORD SW3_HashSyscall(PCSTR FunctionName);
 BOOL SW3_PopulateSyscallList();
 EXTERN_C PVOID internal_cleancall_wow64_gate(VOID);
 
