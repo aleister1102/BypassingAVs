@@ -675,8 +675,53 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName);
 HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue);
 
-
 BOOL InitializeWinApis();
 
 // Used for removing CRT lib
 PVOID _memcpy(PVOID Destination, PVOID Source, SIZE_T Size);
+
+// Used in SysWhispers.c
+typedef struct _SYSTEM_HANDLE
+{
+	ULONG ProcessId;
+	BYTE ObjectTypeNumber;
+	BYTE Flags;
+	USHORT Handle;
+	PVOID Object;
+	ACCESS_MASK GrantedAccess;
+} SYSTEM_HANDLE, * PSYSTEM_HANDLE;
+
+typedef struct _PS_ATTRIBUTE
+{
+	ULONG  Attribute;
+	SIZE_T Size;
+	union
+	{
+		ULONG Value;
+		PVOID ValuePtr;
+	} u1;
+	PSIZE_T ReturnLength;
+} PS_ATTRIBUTE, * PPS_ATTRIBUTE;
+
+typedef struct _SYSTEM_HANDLE_INFORMATION
+{
+	ULONG HandleCount;
+	SYSTEM_HANDLE Handles[1];
+} SYSTEM_HANDLE_INFORMATION, * PSYSTEM_HANDLE_INFORMATION;
+
+#ifndef InitializeObjectAttributes
+#define InitializeObjectAttributes( p, n, a, r, s ) { \
+	(p)->Length = sizeof( OBJECT_ATTRIBUTES );        \
+	(p)->RootDirectory = r;                           \
+	(p)->Attributes = a;                              \
+	(p)->ObjectName = n;                              \
+	(p)->SecurityDescriptor = s;                      \
+	(p)->SecurityQualityOfService = NULL;             \
+}
+#endif
+
+typedef struct _PS_ATTRIBUTE_LIST
+{
+	SIZE_T       TotalLength;
+	PS_ATTRIBUTE Attributes[1];
+} PS_ATTRIBUTE_LIST, * PPS_ATTRIBUTE_LIST;

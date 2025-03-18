@@ -112,6 +112,16 @@ BOOL InitializeSyscalls() {
 		)
 		return FALSE;
 
+	PRINTA("[+] Syscalls Table Initialized\n");
+	PRINTA("[+] NtCreateSection SSN %d\n", g_SyscallsTable.NtCreateSection.wSystemCall);
+	PRINTA("[+] NtMapViewOfSection SSN %d\n", g_SyscallsTable.NtMapViewOfSection.wSystemCall);
+	PRINTA("[+] NtUnmapViewOfSection SSN %d\n", g_SyscallsTable.NtUnmapViewOfSection.wSystemCall);
+	PRINTA("[+] NtClose SSN %d\n", g_SyscallsTable.NtClose.wSystemCall);
+	PRINTA("[+] NtCreateThreadEx SSN %d\n", g_SyscallsTable.NtCreateThreadEx.wSystemCall);
+	PRINTA("[+] NtWaitForSingleObject SSN %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+	PRINTA("[+] NtQuerySystemInformation SSN %d\n", g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
+	PRINTA("[+] NtDelayExecution SSN %d\n", g_SyscallsTable.NtDelayExecution.wSystemCall);
+
 	return TRUE;
 }
 

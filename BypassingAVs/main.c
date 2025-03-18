@@ -1,6 +1,7 @@
 #include "HellsGate.h"
 #include "Common.h"
 #include "IatCamouflage.h"
+#include "SysWhispers.h"
 
 //#define TEST
 
@@ -16,6 +17,12 @@ int main() {
 	// Init syscalls for use
 	if (InitializeSyscalls() == FALSE) {
 		PRINTA("[!] Failed To Initialize Syscalls\n");
+		return -1;
+	}
+
+	// Used for SysWhispers
+	if (!SW3_PopulateSyscallList()) {
+		PRINTA("[!] Failed To Populate Syscall List\n");
 		return -1;
 	}
 

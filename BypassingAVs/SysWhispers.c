@@ -1,7 +1,4 @@
 #include "SysWhispers.h"
-#include <stdio.h>
-
-#define DEBUG
 
 #define JUMPER
 
@@ -9,20 +6,6 @@
 // https://www.mdsec.co.uk/2020/12/bypassing-user-mode-hooks-and-direct-invocation-of-system-calls-for-red-teams
 
 SW3_SYSCALL_LIST SW3_SyscallList;
-
-DWORD SW3_HashSyscall(PCSTR FunctionName)
-{
-    DWORD i = 0;
-    DWORD Hash = SW3_SEED;
-
-    while (FunctionName[i])
-    {
-        WORD PartialName = *(WORD*)((ULONG_PTR)FunctionName + i++);
-        Hash ^= PartialName + SW3_ROR8(Hash);
-    }
-
-    return Hash;
-}
 
 #ifndef JUMPER
 PVOID SC_Address(PVOID NtApiAddress)
@@ -64,7 +47,7 @@ PVOID SC_Address(PVOID NtApiAddress)
     {
         // we can use the original code for this system call :)
         #if defined(DEBUG)
-            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress); // Too noisy
         #endif
         return SyscallAddress;
     }
@@ -82,7 +65,7 @@ PVOID SC_Address(PVOID NtApiAddress)
         if (!memcmp((PVOID)syscall_code, SyscallAddress, sizeof(syscall_code)))
         {
         #if defined(DEBUG)
-            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress); // Too noisy
         #endif
             return SyscallAddress;
         }
@@ -95,7 +78,7 @@ PVOID SC_Address(PVOID NtApiAddress)
         if (!memcmp((PVOID)syscall_code, SyscallAddress, sizeof(syscall_code)))
         {
         #if defined(DEBUG)
-            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress);
+            //PRINTA("Found Syscall Opcodes at address 0x%p\n", SyscallAddress); // Too noisy
         #endif
             return SyscallAddress;
         }
@@ -108,7 +91,6 @@ PVOID SC_Address(PVOID NtApiAddress)
     return NULL;
 }
 #endif
-
 
 BOOL SW3_PopulateSyscallList()
 {
@@ -145,9 +127,8 @@ BOOL SW3_PopulateSyscallList()
         PCHAR FunctionName = SW3_RVA2VA(PCHAR, ntDllBaseAddress, Names[NumberOfNames - 1]);
 
         // Is this a system call?
-        if (*(USHORT*)FunctionName == 0x775a)
+        if (*(USHORT*)FunctionName == 0x775a) // "zw"
         {
-            Entries[i].Hash = SW3_HashSyscall(FunctionName);
             Entries[i].Address = Functions[Ordinals[NumberOfNames - 1]];
             Entries[i].SyscallAddress = SC_Address(SW3_RVA2VA(PVOID, ntDllBaseAddress, Entries[i].Address));
 
@@ -169,16 +150,9 @@ BOOL SW3_PopulateSyscallList()
                 // Swap entries.
                 SW3_SYSCALL_ENTRY TempEntry;
 
-                TempEntry.Hash = Entries[j].Hash;
-                TempEntry.Address = Entries[j].Address;
+                // We only care about the address of the syscall instruction
                 TempEntry.SyscallAddress = Entries[j].SyscallAddress;
-
-                Entries[j].Hash = Entries[j + 1].Hash;
-                Entries[j].Address = Entries[j + 1].Address;
                 Entries[j].SyscallAddress = Entries[j + 1].SyscallAddress;
-
-                Entries[j + 1].Hash = TempEntry.Hash;
-                Entries[j + 1].Address = TempEntry.Address;
                 Entries[j + 1].SyscallAddress = TempEntry.SyscallAddress;
             }
         }
@@ -187,16 +161,15 @@ BOOL SW3_PopulateSyscallList()
     return TRUE;
 }
 
-EXTERN_C PVOID SW3_GetRandomSyscallAddress(DWORD FunctionHash)
+EXTERN_C PVOID SW3_GetRandomSyscallAddress()
 {
     // Ensure SW3_SyscallList is populated.
-    if (!SW3_PopulateSyscallList()) return NULL;
+    if (!SW3_SyscallList.Count) {
+		PRINTA("[!] Syscall list is not populated!\n");
+        return NULL;
+    }
 
     DWORD index = ((DWORD) rand()) % SW3_SyscallList.Count;
 
-    while (FunctionHash == SW3_SyscallList.Entries[index].Hash){
-        // Spoofing the syscall return address
-        index = ((DWORD) rand()) % SW3_SyscallList.Count;
-    }
     return SW3_SyscallList.Entries[index].SyscallAddress;
 }
