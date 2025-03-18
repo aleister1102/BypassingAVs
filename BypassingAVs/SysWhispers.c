@@ -5,39 +5,10 @@
 
 #define JUMPER
 
-#ifdef _M_IX86
-
-EXTERN_C PVOID internal_cleancall_wow64_gate(VOID) {
-    return (PVOID)__readfsdword(0xC0);
-}
-
-__declspec(naked) BOOL local_is_wow64(void)
-{
-    __asm {
-        mov eax, fs:[0xc0]
-        test eax, eax
-        jne wow64
-        mov eax, 0
-        ret
-        wow64:
-        mov eax, 1
-        ret
-    }
-}
-
-
-#endif
-
 // Code below is adapted from @modexpblog. Read linked article for more details.
 // https://www.mdsec.co.uk/2020/12/bypassing-user-mode-hooks-and-direct-invocation-of-system-calls-for-red-teams
 
 SW3_SYSCALL_LIST SW3_SyscallList;
-
-// SEARCH_AND_REPLACE
-#ifdef SEARCH_AND_REPLACE
-// THIS IS NOT DEFINED HERE; don't know if I'll add it in a future release
-EXTERN void SearchAndReplace(unsigned char[], unsigned char[]);
-#endif
 
 DWORD SW3_HashSyscall(PCSTR FunctionName)
 {
@@ -144,56 +115,41 @@ BOOL SW3_PopulateSyscallList()
     // Return early if the list is already populated.
     if (SW3_SyscallList.Count) return TRUE;
 
-    #ifdef _WIN64
-    PSW3_PEB Peb = (PSW3_PEB)__readgsqword(0x60);
-    #else
-    PSW3_PEB Peb = (PSW3_PEB)__readfsdword(0x30);
-    #endif
-    PSW3_PEB_LDR_DATA Ldr = Peb->Ldr;
-    PIMAGE_EXPORT_DIRECTORY ExportDirectory = NULL;
-    PVOID DllBase = NULL;
+    // Get the PEB
+    PTEB pCurrentTeb = RtlGetThreadEnvironmentBlock();
+    PPEB pCurrentPeb = pCurrentTeb->ProcessEnvironmentBlock;
+    if (!pCurrentPeb || !pCurrentTeb || pCurrentPeb->OSMajorVersion != 0xA)
+        return FALSE;
 
-    // Get the DllBase address of NTDLL.dll. NTDLL is not guaranteed to be the second
-    // in the list, so it's safer to loop through the full list and find it.
-    PSW3_LDR_DATA_TABLE_ENTRY LdrEntry;
-    for (LdrEntry = (PSW3_LDR_DATA_TABLE_ENTRY)Ldr->Reserved2[1]; LdrEntry->DllBase != NULL; LdrEntry = (PSW3_LDR_DATA_TABLE_ENTRY)LdrEntry->Reserved1[0])
-    {
-        DllBase = LdrEntry->DllBase;
-        PIMAGE_DOS_HEADER DosHeader = (PIMAGE_DOS_HEADER)DllBase;
-        PIMAGE_NT_HEADERS NtHeaders = SW3_RVA2VA(PIMAGE_NT_HEADERS, DllBase, DosHeader->e_lfanew);
-        PIMAGE_DATA_DIRECTORY DataDirectory = (PIMAGE_DATA_DIRECTORY)NtHeaders->OptionalHeader.DataDirectory;
-        DWORD VirtualAddress = DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-        if (VirtualAddress == 0) continue;
+    // Get NTDLL module 
+    PLDR_DATA_TABLE_ENTRY pLdrDataEntry = (PLDR_DATA_TABLE_ENTRY)((PBYTE)pCurrentPeb->LoaderData->InMemoryOrderModuleList.Flink->Flink - 0x10);
+    PVOID ntDllBaseAddress = pLdrDataEntry->DllBase;
+    if (!ntDllBaseAddress)
+        return FALSE;
 
-        ExportDirectory = (PIMAGE_EXPORT_DIRECTORY)SW3_RVA2VA(ULONG_PTR, DllBase, VirtualAddress);
+    // Get the EAT of NTDLL
+    PIMAGE_EXPORT_DIRECTORY pImageExportDirectory = NULL;
+    if (!GetImageExportDirectory(pLdrDataEntry->DllBase, &pImageExportDirectory) || pImageExportDirectory == NULL)
+        return FALSE;
 
-        // If this is NTDLL.dll, exit loop.
-        PCHAR DllName = SW3_RVA2VA(PCHAR, DllBase, ExportDirectory->Name);
-
-        if ((*(ULONG*)DllName | 0x20202020) != 0x6c64746e) continue;
-        if ((*(ULONG*)(DllName + 4) | 0x20202020) == 0x6c642e6c) break;
-    }
-
-    if (!ExportDirectory) return FALSE;
-
-    DWORD NumberOfNames = ExportDirectory->NumberOfNames;
-    PDWORD Functions = SW3_RVA2VA(PDWORD, DllBase, ExportDirectory->AddressOfFunctions);
-    PDWORD Names = SW3_RVA2VA(PDWORD, DllBase, ExportDirectory->AddressOfNames);
-    PWORD Ordinals = SW3_RVA2VA(PWORD, DllBase, ExportDirectory->AddressOfNameOrdinals);
+    DWORD NumberOfNames = pImageExportDirectory->NumberOfNames;
+    PDWORD Functions = SW3_RVA2VA(PDWORD, ntDllBaseAddress, pImageExportDirectory->AddressOfFunctions);
+    PDWORD Names = SW3_RVA2VA(PDWORD, ntDllBaseAddress, pImageExportDirectory->AddressOfNames);
+    PWORD Ordinals = SW3_RVA2VA(PWORD, ntDllBaseAddress, pImageExportDirectory->AddressOfNameOrdinals);
 
     // Populate SW3_SyscallList with unsorted Zw* entries.
     DWORD i = 0;
     PSW3_SYSCALL_ENTRY Entries = SW3_SyscallList.Entries;
     do
     {
-        PCHAR FunctionName = SW3_RVA2VA(PCHAR, DllBase, Names[NumberOfNames - 1]);
+        PCHAR FunctionName = SW3_RVA2VA(PCHAR, ntDllBaseAddress, Names[NumberOfNames - 1]);
 
         // Is this a system call?
         if (*(USHORT*)FunctionName == 0x775a)
         {
             Entries[i].Hash = SW3_HashSyscall(FunctionName);
             Entries[i].Address = Functions[Ordinals[NumberOfNames - 1]];
-            Entries[i].SyscallAddress = SC_Address(SW3_RVA2VA(PVOID, DllBase, Entries[i].Address));
+            Entries[i].SyscallAddress = SC_Address(SW3_RVA2VA(PVOID, ntDllBaseAddress, Entries[i].Address));
 
             i++;
             if (i == SW3_MAX_ENTRIES) break;
@@ -229,22 +185,6 @@ BOOL SW3_PopulateSyscallList()
     }
 
     return TRUE;
-}
-
-EXTERN_C PVOID SW3_GetSyscallAddress(DWORD FunctionHash)
-{
-    // Ensure SW3_SyscallList is populated.
-    if (!SW3_PopulateSyscallList()) return NULL;
-
-    for (DWORD i = 0; i < SW3_SyscallList.Count; i++)
-    {
-        if (FunctionHash == SW3_SyscallList.Entries[i].Hash)
-        {
-            return SW3_SyscallList.Entries[i].SyscallAddress;
-        }
-    }
-
-    return NULL;
 }
 
 EXTERN_C PVOID SW3_GetRandomSyscallAddress(DWORD FunctionHash)
