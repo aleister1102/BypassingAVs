@@ -128,7 +128,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -141,6 +141,7 @@
     <ClCompile Include="ApiHashing.c" />
     <ClCompile Include="Common.c" />
     <ClCompile Include="Cryptor.c" />
+    <ClCompile Include="EntropyReducer.c" />
     <ClCompile Include="HellsGate.c" />
     <ClCompile Include="IatCamouflage.h" />
     <ClCompile Include="main.c" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="EntropyReducer.h" />
     <ClInclude Include="HellsGate.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SysWhispers.h" />

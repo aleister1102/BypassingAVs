@@ -45,6 +45,9 @@
     <ClCompile Include="SysWhispers.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EntropyReducer.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SysWhispers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EntropyReducer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
