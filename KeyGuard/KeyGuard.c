@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <time.h>
 
+unsigned char Rc4Key[] = {
+		0x54, 0x48, 0xF6, 0x3D, 0xA5, 0x29, 0x19, 0xC2, 0x8A, 0x53, 0x44, 0x7F, 0xD8, 0x20, 0xFE, 0x31 };
 
 
 VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size) {
@@ -28,36 +30,22 @@ VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size) {
 
 
 
-VOID GenerateProtectedKey(IN BYTE HintByte, IN SIZE_T sKey, OUT PBYTE* ppProtectedKey) {
+VOID GenerateProtectedKey(IN PBYTE pOriginalKey, IN SIZE_T sKey, OUT PBYTE* ppProtectedKey) {
 
 	srand(time(NULL) / 3);
 
 	BYTE				b = rand() % 0xFF;
-	PBYTE				pKey = (PBYTE)malloc(sKey);
 	PBYTE				pProtectedKey = (PBYTE)malloc(sKey);
 
-	if (!pKey || !pProtectedKey)
+	if (!pOriginalKey || !pProtectedKey)
 		return;
 
-	srand(time(NULL) * 2);
-
-	pKey[0] = HintByte;
-	for (int i = 1; i < sKey; i++) {
-		pKey[i] = (BYTE)rand() % 0xFF;
-	}
-
-
-	PrintHexData("OriginalKey", pKey, sKey);
-
-
 	for (int i = 0; i < sKey; i++) {
-		pProtectedKey[i] = (BYTE)((pKey[i] + i) ^ b);
+		pProtectedKey[i] = (BYTE)((pOriginalKey[i] + i) ^ b);
 	}
 
 
 	*ppProtectedKey = pProtectedKey;
-
-	free(pKey);
 }
 
 
@@ -91,34 +79,28 @@ VOID PrintFunction() {
 
 
 int main(int argc, char* argv[]) {
+	printf("\t\t\t##########################################################\n"
+		"\t\t\t# KeyGuard - Designed By MalDevAcademy @NUL0x4C | @mrd0x #\n"
+		"\t\t\t##########################################################\n\n");
 
-	
-	
-
-	if (argc < 2) {
-		printf("\t\t\t##########################################################\n"
-			"\t\t\t# KeyGuard - Designed By MalDevAcademy @NUL0x4C | @mrd0x #\n"
-			"\t\t\t##########################################################\n\n");
-
-		printf("[!] Require Input Key Size To Run \n");
-		return -1;
-	}
 
 	srand(time(NULL));
 
+	SIZE_T	sKeySize = sizeof(Rc4Key) * sizeof(unsigned char);
+	BYTE	bHintByte = Rc4Key[0];
 	PBYTE	pProtectedKey = NULL;
-	DWORD	dwKeySize = (DWORD)atoi((const char*)argv[1]);
-	BYTE	bHintByte = (BYTE)((rand() % 0xFF) * 2);
 
 	printf("/*\n\n");
-	printf("[i] Input Key Size : %d \n", dwKeySize);
+	printf("[i] Input Key Size : %d \n", (DWORD)sKeySize);
 	printf("[+] Using \"0x%0.2X\" As A Hint Byte \n\n", bHintByte);
 
 	printf("[+] Use The Following Key For [Encryption] \n");
-	GenerateProtectedKey(bHintByte, dwKeySize, &pProtectedKey);
+	PrintHexData("OriginalKey", Rc4Key, (DWORD)sKeySize);
+
+	GenerateProtectedKey(Rc4Key, sKeySize, &pProtectedKey);
 
 	printf("[+] Use The Following For [Implementations] \n");
-	PrintHexData("ProtectedKey", pProtectedKey, dwKeySize);
+	PrintHexData("ProtectedKey", pProtectedKey, (DWORD)sKeySize);
 
 	printf("\n\n\t\t\t-------------------------------------------------\n\n");
 	printf("*/\n\n");
@@ -126,7 +108,7 @@ int main(int argc, char* argv[]) {
 	printf("#include <Windows.h>\n\n");
 	printf("#define HINT_BYTE 0x%0.2X\n\n", bHintByte);
 
-	PrintHexData("ProtectedKey", pProtectedKey, dwKeySize);
+	PrintHexData("ProtectedKey", pProtectedKey, (DWORD)sKeySize);
 	PrintFunction();
 
 	printf("// Example calling:\n\n// PBYTE\tpRealKey\t=\tNULL;\n// BruteForceDecryption(HINT_BYTE, ProtectedKey, sizeof(ProtectedKey), &pRealKey); \n\n");

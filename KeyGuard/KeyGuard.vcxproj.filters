@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\KeyGuard\KeyGuard\KeyGuard.c">
+    <ClCompile Include="KeyGuard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
