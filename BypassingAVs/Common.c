@@ -48,6 +48,15 @@ PTEB RtlGetThreadEnvironmentBlock()
 #endif
 }
 
+PPEB RtlGetProcessEnvironmentBlock()
+{
+#if _WIN64
+	return (PPEB)__readgsqword(0x60);
+#else
+	return (PPEB)__readfsdword(0x30);
+#endif
+}
+
 PVOID CopyMemoryEx(IN OUT PVOID Destination, IN CONST PVOID Source, IN SIZE_T Length)
 {
 	PBYTE D = (PBYTE)Destination;
@@ -156,7 +165,6 @@ CHAR ToLowerCharA(IN CHAR character)
 	return lowerChar;
 }
 
-// TODO: handle logic for the caller to release memory
 LPCWSTR LowerCaseStringW(IN LPCWSTR str) {
 	if (!str)
 		return NULL;
@@ -237,16 +245,7 @@ BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2)
 	return FALSE;
 }
 
-// Used for removing CRT lib
-PVOID _memcpy(PVOID Destination, PVOID Source, SIZE_T Size)
-{
-	for (volatile int i = 0; i < Size; i++) {
-		((BYTE*)Destination)[i] = ((BYTE*)Source)[i];
-	}
-	return Destination;
-}
-
-
+// Used by HeapAlloc
 extern void* __cdecl memset(void*, int, size_t);
 #pragma intrinsic(memset)
 #pragma function(memset)
@@ -261,7 +260,7 @@ void* __cdecl memset(void* Destination, int Value, size_t Size) {
 	return Destination;
 }
 
-// Used for building in Release
+// Used for randomly syscall address retrieval
 #ifdef _MSC_VER  // If compiling with MSVC
 #ifndef _DEBUG  // If it's a Release build
 extern int __cdecl rand(void);

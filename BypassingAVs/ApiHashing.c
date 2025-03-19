@@ -91,11 +91,7 @@ FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValu
 HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName)
 {
 	// Getting peb
-#ifdef _WIN64 // if compiling as x64
-	PPEB			pPeb = (PEB*)(__readgsqword(0x60));
-#elif _WIN32 // if compiling as x32
-	PPEB			pPeb = (PEB*)(__readfsdword(0x30));
-#endif
+	PPEB			pPeb = RtlGetProcessEnvironmentBlock();
 
 	// Getting the LoaderData field
 	PPEB_LDR_DATA		    pLdr = (PPEB_LDR_DATA)(pPeb->LoaderData);
@@ -127,11 +123,7 @@ HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName)
 HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue)
 {
 	// Getting peb
-#ifdef _WIN64 // if compiling as x64
-	PPEB			pPeb = (PEB*)(__readgsqword(0x60));
-#elif _WIN32 // if compiling as x32
-	PPEB			pPeb = (PEB*)(__readfsdword(0x30));
-#endif
+	PPEB			pPeb = RtlGetProcessEnvironmentBlock();
 
 	// Getting the LoaderData field
 	PPEB_LDR_DATA		    pLdr = (PPEB_LDR_DATA)(pPeb->LoaderData);

@@ -635,6 +635,7 @@ INT StringCompareA(IN LPCSTR String1, IN LPCSTR String2);
 BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2);
 UINT32 HashStringRotr32W(LPCWSTR String);
 LPCSTR LowerCaseStringA(IN LPCSTR str);
+PPEB RtlGetProcessEnvironmentBlock();
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
