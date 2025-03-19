@@ -175,7 +175,6 @@
     <None Include="..\README.md" />
     <None Include="..\Signer.ps1" />
     <None Include="calc.obfuscated.ico" />
-    <None Include="Listener.ps1" />
     <None Include="reverse.bin" />
     <None Include="reverse.encrypted.bin" />
     <None Include="reverse.obfuscated.bin" />
