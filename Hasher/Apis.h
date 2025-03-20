@@ -9,10 +9,17 @@ PCHAR NativeApis[] = {
 	"NtCreateThreadEx",
 	"NtWaitForSingleObject",
 	"NtQuerySystemInformation",
-	"NtDelayExecution"
+	"NtDelayExecution",
+	"NtAllocateVirtualMemory",
+	"NtProtectVirtualMemory",
+	"NtWriteVirtualMemory",
+	"NtQueueApcThread",
+	"NtQueryInformationProcess",
+	"NtRemoveProcessDebug",
+	"NtFreeVirtualMemory"
 };
 // Remember to update this value if you add/remove any APIs
-DWORD NativeApisCount = 8;
+DWORD NativeApisCount = 15;
 
 PCHAR WindowsApis[] = {
 	"FindResourceW",
@@ -29,7 +36,12 @@ PCHAR WindowsApis[] = {
 	"GetModuleFileNameW",
 	"CreateFileW",
 	"SetFileInformationByHandle",
-	"SystemFunction032"
+	"SystemFunction032",
+	"GetEnvironmentVariableA",
+	"InitializeProcThreadAttributeList",
+	"UpdateProcThreadAttribute",
+	"CreateProcessA",
+	"DeleteProcThreadAttributeList",
 };
 // Remember to update this value if you add/remove any APIs
-DWORD WindowsApisCount = 15;
+DWORD WindowsApisCount = 20;

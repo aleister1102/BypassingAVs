@@ -11,6 +11,13 @@
 #define NtQuerySystemInformationHashValue	0xEFFC1CF8
 #define NtSetInformationFileHashValue		0x8A04AED4
 #define NtDelayExecutionHashValue			0x078A465C
+#define NtAllocateVirtualMemoryHashValue    0x014044AE
+#define NtProtectVirtualMemoryHashValue     0xE67C7320
+#define NtWriteVirtualMemoryHashValue		0x1130814D
+#define NtQueueApcThreadHashValue			0x5ABF32F8
+#define NtQueryInformationProcessHashValue  0xE6AAB603
+#define NtRemoveProcessDebugHashValue		0x99EA1544
+#define NtFreeVirtualMemoryHashValue		0xE584BAAE
 
 // Data structures
 typedef struct _VX_TABLE_ENTRY {

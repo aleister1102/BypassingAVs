@@ -25,24 +25,30 @@ extern DWORD g_dwMouseClicks;
 #define REQUIRED_CLICKS 7
 
 // Windows API hash values
-#define USER32DLLHashValue						0x5644677D
-#define KERNEL32DLLHashValue					0xEC1C6278
+#define USER32DLLHashValue								0x5644677D
+#define KERNEL32DLLHashValue							0xEC1C6278
 
-#define FindResourceWHashValue					0x83CECA7F
-#define LoadResourceHashValue					0xFF951427
-#define LockResourceHashValue					0xFF951B2B
-#define SizeofResourceHashValue					0xD90BB0A3
+#define FindResourceWHashValue							0x83CECA7F
+#define LoadResourceHashValue							0xFF951427
+#define LockResourceHashValue							0xFF951B2B
+#define SizeofResourceHashValue							0xD90BB0A3
 
-#define GetTickCount64HashValue					0xB26FB445
-#define OpenProcessHashValue					0x77CE8553
-#define CallNextHookExHashValue					0x5C51FD6F
-#define SetWindowsHookExWHashValue				0xA99AF232
-#define GetMessageWHashValue					0x61060461
-#define DefWindowProcWHashValue					0x22E85CBA
-#define UnhookWindowsHookExHashValue			0x5BE1CA0B
-#define GetModuleFileNameWHashValue				0xB4FFB003
-#define CreateFileWHashValue					0x94E432A9
-#define SetFileInformationByHandleHashValue     0xEBF511FC
+#define GetTickCount64HashValue							0xB26FB445
+#define OpenProcessHashValue							0x77CE8553
+#define CallNextHookExHashValue							0x5C51FD6F
+#define SetWindowsHookExWHashValue						0xA99AF232
+#define GetMessageWHashValue							0x61060461
+#define DefWindowProcWHashValue							0x22E85CBA
+#define UnhookWindowsHookExHashValue					0x5BE1CA0B
+#define GetModuleFileNameWHashValue						0xB4FFB003
+#define CreateFileWHashValue							0x94E432A9
+#define SetFileInformationByHandleHashValue				0xEBF511FC
+
+#define GetEnvironmentVariableAHashValue				0xEC496A9E
+#define InitializeProcThreadAttributeListHashValue      0x841B3D2F
+#define UpdateProcThreadAttributeHashValue				0x847CA45E
+#define CreateProcessAHashValue							0x6BA6BCC9
+#define DeleteProcThreadAttributeListHashValue			0x1F78C604
 
 /*--------------------------------------------------------------------
   STRUCTURES
