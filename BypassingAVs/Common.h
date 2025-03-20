@@ -639,7 +639,6 @@ PPEB RtlGetProcessEnvironmentBlock();
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
-BOOL CreatePPidSpoofedAndSuspendedProcess(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread);
 
 // Defined in AntiAnalysis.c
 BOOL SelfDelete();

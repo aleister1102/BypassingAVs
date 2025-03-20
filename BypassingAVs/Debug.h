@@ -28,6 +28,7 @@
     }
 
 // getchar replacement
+//TODO: fix this as it accepts the trailing newline
 #define GETCHAR()                                                                           \
     if (1) {                                                                                \
         char c = 0;\
