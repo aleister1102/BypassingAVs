@@ -24,7 +24,7 @@ extern HHOOK g_hMouseHook;
 extern DWORD g_dwMouseClicks;
 
 // Minimum click for passing anti-analysis
-#define REQUIRED_CLICKS 7
+#define REQUIRED_CLICKS 4
 
 // Windows API hash values
 #define USER32DLLHashValue								0x5644677D

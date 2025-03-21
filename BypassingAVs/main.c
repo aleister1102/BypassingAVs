@@ -48,9 +48,7 @@ int main() {
 	PVOID pPayloadAddress = NULL;
 	SIZE_T sPayloadSize = 0;
 	DWORD dwPid = 0;
-	HANDLE hProcess = NULL;
-	HANDLE hSpoofedParentProcess = NULL;
-	HANDLE hThread = NULL;
+	HANDLE hProcess = NULL, hSpoofedParentProcess = NULL, hThread = NULL;
 
 	#ifdef ANTI_ANALYSIS
 		// Anti-analysis techniques
