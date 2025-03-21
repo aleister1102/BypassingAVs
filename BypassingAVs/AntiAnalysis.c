@@ -190,7 +190,7 @@ BOOL DelayExec(DWORD dwMilliSeconds) {
 		return FALSE;
 
 	PRINTA("\n\t>> _T1 - _T0 = %d \n", (DWORD)(T1 - T0));
-	PRINTA("[+] DONE \n");
+	PRINTA("[+] DONE!\n");
 
 	return TRUE;
 }

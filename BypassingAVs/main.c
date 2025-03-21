@@ -107,7 +107,6 @@ int main() {
 		PRINTA("[!] Rc4DecryptionViSystemFunc032 Failed\n");
 		return -1;
 	}
-	PRINTA("[+] DONE \n");
 	PRINTA("\t>>> Decrypted Payload Located At : 0x%p \n", pAllocatedAddress);
 
 	#ifdef LOCAL_INJECTION
