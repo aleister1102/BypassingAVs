@@ -29,6 +29,11 @@ int main() {
 		HASH_VALUE_POSTFIX,
 		RTIME_HASHA("kernel32.dll"));
 
+	printf("#define %s%s \t0x%0.8X \n",
+		"KERNELBASE",
+		HASH_VALUE_POSTFIX,
+		RTIME_HASHA("kernelbase.dll"));
+
 	// Functions
 	printf("\t===Functions===\n");
 	for (SIZE_T i = 0; i < WindowsApisCount; i++) {

