@@ -150,7 +150,7 @@
     <ClCompile Include="Typedef.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="HellsGateAsm.asm">
+    <MASM Include="WhisperHell.asm">
       <FileType>Document</FileType>
     </MASM>
   </ItemGroup>

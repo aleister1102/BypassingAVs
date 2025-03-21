@@ -16,10 +16,12 @@ PCHAR NativeApis[] = {
 	"NtQueueApcThread",
 	"NtQueryInformationProcess",
 	"NtRemoveProcessDebug",
-	"NtFreeVirtualMemory"
+	"NtFreeVirtualMemory",
+	"NtOpenProcessToken",
+	"NtQueryInformationToken"
 };
 // Remember to update this value if you add/remove any APIs
-DWORD NativeApisCount = 15;
+DWORD NativeApisCount = 17;
 
 PCHAR WindowsApis[] = {
 	"FindResourceW",

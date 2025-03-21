@@ -18,6 +18,8 @@
 #define NtQueryInformationProcessHashValue  0xE6AAB603
 #define NtRemoveProcessDebugHashValue		0x99EA1544
 #define NtFreeVirtualMemoryHashValue		0xE584BAAE
+#define NtOpenProcessTokenHashValue			0x3B1DEA59
+#define NtQueryInformationTokenHashValue    0xB153E873
 
 // Data structures
 typedef struct _VX_TABLE_ENTRY {
@@ -35,6 +37,15 @@ typedef struct _VX_TABLE {
 	VX_TABLE_ENTRY NtWaitForSingleObject;
 	VX_TABLE_ENTRY NtQuerySystemInformation;
 	VX_TABLE_ENTRY NtDelayExecution;
+	VX_TABLE_ENTRY NtAllocateVirtualMemory;
+	VX_TABLE_ENTRY NtProtectVirtualMemory;
+	VX_TABLE_ENTRY NtWriteVirtualMemory;
+	VX_TABLE_ENTRY NtQueueApcThread;
+	VX_TABLE_ENTRY NtQueryInformationProcess;
+	VX_TABLE_ENTRY NtRemoveProcessDebug;
+	VX_TABLE_ENTRY NtFreeVirtualMemory;
+	VX_TABLE_ENTRY NtOpenProcessToken;
+	VX_TABLE_ENTRY NtQueryInformationToken;
 } VX_TABLE, * PVX_TABLE;
 
 /// Function prototypes

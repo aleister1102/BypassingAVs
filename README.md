@@ -7,3 +7,5 @@ Command for signing the binary:
 ```powershell
 .\Signer.ps1 -Password (ConvertTo-SecureString "<password>" -AsPlainText -Force) -BinaryPath ".\BypassingAVs.exe"
 ```
+
+TODO: add features and roadmap as well as the problems I have solved during the process of learning

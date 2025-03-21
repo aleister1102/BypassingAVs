@@ -65,32 +65,40 @@
 		jmp GoToHell
 	NtDelayExecution ENDP
 
-	NtAllocateVirtualMemoryHashValue PROC
+	NtAllocateVirtualMemory PROC
 		jmp GoToHell
-	NtAllocateVirtualMemoryHashValue ENDP
+	NtAllocateVirtualMemory ENDP
 	
-	NtProtectVirtualMemoryHashValue PROC
+	NtProtectVirtualMemory PROC
 		jmp GoToHell
-	NtProtectVirtualMemoryHashValue ENDP
+	NtProtectVirtualMemory ENDP
 
-	NtWriteVirtualMemoryHashValue PROC
+	NtWriteVirtualMemory PROC
 		jmp GoToHell
-	NtWriteVirtualMemoryHashValue ENDP
+	NtWriteVirtualMemory ENDP
 
-	NtQueueApcThreadHashValue PROC
+	NtQueueApcThread PROC
 		jmp GoToHell
-	NtQueueApcThreadHashValue ENDP
+	NtQueueApcThread ENDP
 
-	NtQueryInformationProcessHashValue PROC
+	NtQueryInformationProcess PROC
 		jmp GoToHell
-	NtQueryInformationProcessHashValue ENDP
+	NtQueryInformationProcess ENDP
 
-	NtRemoveProcessDebugHashValue PROC
+	NtRemoveProcessDebug PROC
 		jmp GoToHell	
-	NtRemoveProcessDebugHashValue ENDP
+	NtRemoveProcessDebug ENDP
 
-	NtFreeVirtualMemoryHashValue PROC
+	NtFreeVirtualMemory PROC
 		jmp GoToHell
-	NtFreeVirtualMemoryHashValue ENDP
+	NtFreeVirtualMemory ENDP
+
+	NtOpenProcessToken PROC
+		jmp GoToHell
+	NtOpenProcessToken ENDP
+
+	NtQueryInformationToken PROC
+		jmp GoToHell
+	NtQueryInformationToken ENDP
 
 end	
