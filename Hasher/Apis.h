@@ -44,6 +44,11 @@ PCHAR WindowsApis[] = {
 	"UpdateProcThreadAttribute",
 	"CreateProcessA",
 	"DeleteProcThreadAttributeList",
+	"InternetOpenW",
+	"InternetOpenUrlW",
+	"InternetReadFile",	
+	"InternetCloseHandle",
+	"InternetSetOptionW"
 };
 // Remember to update this value if you add/remove any APIs
-DWORD WindowsApisCount = 20;
+DWORD WindowsApisCount = 25;

