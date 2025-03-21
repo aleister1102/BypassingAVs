@@ -850,3 +850,10 @@ typedef enum _PROCESSINFOCLASS
 	ProcessAvailableCpus,
 	MaxProcessInfoClass
 } PROCESSINFOCLASS;
+
+// Reference: https://learn.microsoft.com/en-us/windows/win32/wininet/api-flags
+#define INTERNET_FLAG_HYPERLINK 0x00000400
+#define INTERNET_FLAG_IGNORE_CERT_DATE_INVALID 0x00002000
+
+// Reference; https://learn.microsoft.com/en-us/windows/win32/wininet/option-flags
+#define INTERNET_OPTION_SETTINGS_CHANGED 39

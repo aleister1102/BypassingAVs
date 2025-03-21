@@ -178,6 +178,7 @@
     <None Include="reverse.bin" />
     <None Include="reverse.encrypted.bin" />
     <None Include="reverse.obfuscated.bin" />
+    <None Include="shellcode.obfuscated.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

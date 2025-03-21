@@ -118,5 +118,8 @@
     <None Include="..\Listener.ps1">
       <Filter>Scripts</Filter>
     </None>
+    <None Include="shellcode.obfuscated.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
