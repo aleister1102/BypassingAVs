@@ -60,6 +60,8 @@ extern DWORD g_dwMouseClicks;
 #define InternetCloseHandleHashValue					0xB5A8A158
 #define InternetSetOptionWHashValue						0x3F5735A7
 
+#define LoadLibraryAHashValue							0x0C917432
+
 /*--------------------------------------------------------------------
   STRUCTURES
 --------------------------------------------------------------------*/

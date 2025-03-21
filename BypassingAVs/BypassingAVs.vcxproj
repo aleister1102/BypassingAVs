@@ -159,12 +159,18 @@
     <ClInclude Include="Debug.h" />
     <ClInclude Include="EntropyReducer.h" />
     <ClInclude Include="HellsGate.h" />
-    <ClInclude Include="Resource.h" />
+    <ClInclude Include="Resource.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="SysWhispers.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="calc.encrypted.ico" />
-    <Image Include="calc.ico" />
+    <Image Include="calc.encrypted.ico">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Image>
+    <Image Include="calc.ico">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -172,15 +178,31 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\EntropyCalc.py" />
-    <None Include="..\Listener.ps1" />
+    <None Include="..\EntropyCalc.py">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\Listener.ps1">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\README.md" />
-    <None Include="..\Signer.ps1" />
-    <None Include="calc.obfuscated.ico" />
-    <None Include="reverse.bin" />
-    <None Include="reverse.encrypted.bin" />
-    <None Include="reverse.obfuscated.bin" />
-    <None Include="shellcode.obfuscated.bin" />
+    <None Include="..\Signer.ps1">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="calc.obfuscated.ico">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="reverse.bin">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="reverse.encrypted.bin">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="reverse.obfuscated.bin">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="shellcode.obfuscated.bin">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
