@@ -28,8 +28,6 @@ VOID PrintHexData(LPCSTR Name, PBYTE Data, SIZE_T Size) {
 
 }
 
-
-
 VOID GenerateProtectedKey(IN PBYTE pOriginalKey, IN SIZE_T sKey, OUT PBYTE* ppProtectedKey) {
 
 	srand(time(NULL) / 3);
@@ -47,9 +45,6 @@ VOID GenerateProtectedKey(IN PBYTE pOriginalKey, IN SIZE_T sKey, OUT PBYTE* ppPr
 
 	*ppProtectedKey = pProtectedKey;
 }
-
-
-
 
 VOID PrintFunction() {	
 	CHAR* buf =
@@ -75,9 +70,6 @@ VOID PrintFunction() {
 	printf("%s", buf);
 }
 
-
-
-
 int main(int argc, char* argv[]) {
 	printf("\t\t\t##########################################################\n"
 		"\t\t\t# KeyGuard - Designed By MalDevAcademy @NUL0x4C | @mrd0x #\n"
@@ -86,7 +78,7 @@ int main(int argc, char* argv[]) {
 
 	srand(time(NULL));
 
-	SIZE_T	sKeySize = sizeof(Rc4Key) * sizeof(unsigned char);
+    SIZE_T	sKeySize = sizeof(Rc4Key);
 	BYTE	bHintByte = Rc4Key[0];
 	PBYTE	pProtectedKey = NULL;
 
