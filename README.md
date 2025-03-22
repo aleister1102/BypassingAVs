@@ -21,9 +21,9 @@ Implement techniques learned from MalDevAcademy for building a malware that can 
 - **IAT Camouflage**: used for creating fake IAT entries by tricking the compiler into thinking that the benign and unused API functions are being used in the code.
 - **CRT Library Independent**: totally remove the dependency on the CRT library of Visual Studio by using some custom and intrinsic functions for reducing the size and the entropy of the binary.
 
-## Problems When Building the Project (in Vietnamese)
+## Problems/Lesson Learned When Building the Project (in Vietnamese)
 
-[Problems](https://github.com/aleister1102/BypassingAVs/blob/cf1ed3288ba7a8d55ba7324551290bfa7be3a9b0/Problems.pdf)
+[Problems.pdf](https://github.com/aleister1102/BypassingAVs/blob/cf1ed3288ba7a8d55ba7324551290bfa7be3a9b0/Problems.pdf) or https://insomnia1102.online/002-Cyber-Security/MalDev/MalDev---Bypassing-AVs
 
 ## Commands
 
