@@ -127,5 +127,8 @@
     <None Include="key.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\MalDev - Bypassing AVs.pdf">
+      <Filter>Docs</Filter>
+    </None>
   </ItemGroup>
 </Project>

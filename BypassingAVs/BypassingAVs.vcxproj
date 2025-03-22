@@ -187,6 +187,7 @@
     <None Include="..\Listener.ps1">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="..\MalDev - Bypassing AVs.pdf" />
     <None Include="..\README.md" />
     <None Include="..\Signer.ps1">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
