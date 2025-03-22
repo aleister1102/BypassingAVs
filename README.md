@@ -23,7 +23,7 @@ Implement techniques learned from MalDevAcademy for building a malware that can 
 
 ## Problems When Building the Project (in Vietnamese)
 
-![Problems](Problems.pdf)
+[Problems](https://github.com/aleister1102/BypassingAVs/blob/cf1ed3288ba7a8d55ba7324551290bfa7be3a9b0/Problems.pdf)
 
 ## Commands
 
