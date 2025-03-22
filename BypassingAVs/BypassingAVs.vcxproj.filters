@@ -121,5 +121,11 @@
     <None Include="shellcode.obfuscated.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\GenKeyFile.py">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="key.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
