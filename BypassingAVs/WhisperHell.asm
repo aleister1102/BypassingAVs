@@ -6,6 +6,22 @@
 
 	;; New implementation of HellsGate with indirect syscalls: WhisperHell
 
+	.code 
+	HellsGate PROC
+		mov wSystemCall, 000h
+		mov wSystemCall, ecx
+		ret
+	HellsGate ENDP
+
+	HellDescent PROC
+		mov r10, rcx
+		mov eax, wSystemCall
+
+		syscall
+		ret
+	HellDescent ENDP
+
+
 	WhisperHell PROC
 		mov wSystemCall, 000h
 		mov wSystemCall, ecx
